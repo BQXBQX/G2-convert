@@ -1,6 +1,6 @@
 import initSwc, { parse, print } from "@swc/wasm-web";
 import type { Module } from "@swc/wasm-web"; // 用 import type 声明仅用于类型的导入
-import { Chart } from "@antv/g2";
+// import { Chart } from "@antv/g2";
 
 // class MyChart extends Chart {
 //   // 重写 render 方法
