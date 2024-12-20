@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "pnpm --filter @g2-convert/test test",
     "lint": "biome lint",
     "format": "biome format --fix"
   },

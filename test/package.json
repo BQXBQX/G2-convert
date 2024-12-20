@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "engines": {
-    "node": ">=19"
+    "node": ">=20.0.0"
   },
   "engineStrict": true,
   "main": "index.js",
@@ -16,6 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@g2-convert/core": "workspace:*",
+    "lodash": "^4.17.21",
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
