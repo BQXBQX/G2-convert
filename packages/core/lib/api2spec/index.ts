@@ -11,7 +11,7 @@ export const api2spec = async (api: string): Promise<object> => {
   const ast: Module = await parse(api, {
     syntax: "typescript",
   });
-  const { ast: usefulAst, uselessModuleItems, imports } = filterAST(ast);
+  const { AST: usefulAst, otherModuleItems } = filterAST(ast);
   const { code } = await print(usefulAst);
 
   const instanceInfo = getInstanceInfo(ast);
