@@ -1,7 +1,8 @@
-export const noop = () => {
-  return;
-};
+export * from "./filter";
+export * from "./getInstanceInfo";
 
-export const add = (a: number, b: number) => {
-  return a + b;
-};
+export function removeUndefinedProperties(obj: object) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([_, value]) => value !== undefined)
+  );
+}

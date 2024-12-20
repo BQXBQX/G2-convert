@@ -4,6 +4,7 @@
   "description": "",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rollup -c",
@@ -13,10 +14,17 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "rollup": "^4.28.1",
-    "typescript": "^5.7.2",
+    "@rollup/plugin-commonjs": "^28.0.2",
+    "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-typescript": "^12.1.2",
-    "tslib": "^2.8.1"
+    "@rollup/plugin-wasm": "^6.2.2",
+    "rollup": "^4.28.1",
+    "rollup-plugin-copy": "^3.5.0",
+    "tslib": "^2.8.1",
+    "typescript": "^5.7.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@antv/g2": "^5.2.10",
+    "@swc/wasm-web": "^1.10.1"
+  }
 }
