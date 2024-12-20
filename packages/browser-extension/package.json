@@ -1,0 +1,31 @@
+{
+  "name": "@g2-convert/browser-extension",
+  "displayName": "Browser extension",
+  "version": "0.0.1",
+  "description": "convert api & spec for g2",
+  "author": "bqxbqx <boqingxin14@gmail.com>",
+  "scripts": {
+    "dev": "plasmo dev",
+    "build": "plasmo build",
+    "package": "plasmo package"
+  },
+  "dependencies": {
+    "antd": "^5.22.5",
+    "plasmo": "0.89.4",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "@g2-convert/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/chrome": "0.0.258",
+    "@types/node": "20.11.5",
+    "@types/react": "18.2.48",
+    "@types/react-dom": "18.2.18",
+    "typescript": "^5.7.2"
+  },
+  "manifest": {
+    "host_permissions": [
+      "https://*/*"
+    ]
+  }
+}

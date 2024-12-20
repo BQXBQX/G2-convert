@@ -130,3 +130,11 @@ dist
 .pnp.*
 
 pnpm-lock.yaml
+
+# plasmo
+.plasmo
+
+# typescript
+.tsbuildinfo
+
+build
