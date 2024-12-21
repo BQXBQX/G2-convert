@@ -3,6 +3,7 @@ import type { Module } from "@swc/wasm-web";
 import { filterAST, getChartInstantiationInfo } from "../common";
 import Chart from "./chart";
 import { removeUndefinedProperties } from "../common";
+import eventEmitter from "../common/eventEmitter";
 
 export const api2spec = async (api: string): Promise<object> => {
   await initSwc();
@@ -16,9 +17,13 @@ export const api2spec = async (api: string): Promise<object> => {
 
   const instantiationInfo = getChartInstantiationInfo(AST);
 
-  const spec = evalChartCode(
-    `${code}\nreturn ${instantiationInfo.instanceName}.options()`
-  );
+  let spec: object = {};
+
+  eventEmitter.on("spec", (value) => {
+    spec = value as object;
+  });
+
+  evalChartCode(`${code}\n ${instantiationInfo.instanceName}.toSpec();`);
 
   return removeUndefinedProperties(spec);
 };
