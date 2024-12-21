@@ -19,7 +19,7 @@ export const api2spec = async (api: string): Promise<object> => {
 
   let spec: object = {};
 
-  eventEmitter.on("spec", (value) => {
+  eventEmitter.once("spec", (value) => {
     spec = value as object;
   });
 
