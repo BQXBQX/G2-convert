@@ -5,6 +5,8 @@ import type { Module, ModuleItem } from "@swc/wasm-web";
  * @param AST AST Module
  * @returns instance name and the ModuleItem containing the Chart instantiation
  */
+// TODO: now only support single instantiation
+// TODO: now only support chart instantiation, need to support alias of chart
 export const getChartInstantiationInfo = (
   AST: Module
 ): { instanceName: string | null; moduleItem: ModuleItem | null } => {
