@@ -1,9 +1,9 @@
-/**
+/** TODO: can not be used for now, this function is too weak
  * if you want to write isFunction, please return { keep: boolean, variableName: string[] }
  * keep is if this module item is useful
  * variableName is this useful module identifier names
  */
-import type { Identifier, Module, ModuleItem } from "@swc/wasm-web";
+import type { Module, ModuleItem } from "@swc/wasm-web";
 import { getChartInstantiationInfo } from "./getChartInstantiationInfo";
 
 interface isFunctionReturn {
@@ -47,15 +47,12 @@ class ChartRelateModule {
   // otherModuleItems
   private otherModuleItems: ModuleItem[] = [];
 
-  // allModuleItems
+  // allUsedIdentifiers
   private allUsedIdentifiers: Set<string>;
 
   // allModuleItems
   private allModuleItems: ModuleItem[];
-  /**
-   *
-   * @param instantiationModuleItem
-   */
+
   constructor(
     instantiationModuleItem: ModuleItem,
     instanceName: string,
@@ -76,14 +73,35 @@ class ChartRelateModule {
   ) {
     const searchResult: ModuleItem[] = [];
 
-    for (const identifier of this.allUsedIdentifiers) {
+    let identifierCount = this.allUsedIdentifiers.size;
+    const identifiers = Array.from(this.allUsedIdentifiers);
+
+    for (let i = 0; i < identifierCount; i++) {
+      const identifier = identifiers[i];
+
       for (const node of this.allModuleItems) {
         const { keep, variableName } = searchFn(node, identifier);
+
         if (keep) {
           searchResult.push(node);
           this.otherModuleItems.push(node);
+
           for (const name of variableName) {
-            this.allUsedIdentifiers.add(name);
+            if (!this.allUsedIdentifiers.has(name)) {
+              this.allUsedIdentifiers.add(name);
+              identifiers.push(name);
+              identifierCount++; // Extend the loop to cover the new element
+
+              const variableModule = getVariableModuleByIdentifierName(
+                this.allModuleItems,
+                name
+              );
+
+              if (variableModule) {
+                searchResult.push(variableModule);
+                this.otherModuleItems.push(variableModule);
+              }
+            }
           }
         }
       }
@@ -190,9 +208,10 @@ const isExpressionStartsWith = (
   let currentNode = expression;
   while (currentNode && currentNode.type === "CallExpression") {
     // Check for identifiers in arguments
-    for (const arg of currentNode.arguments as unknown as Identifier[]) {
-      if (arg.type === "Identifier") {
-        variableName.add(arg.value);
+    for (const arg of currentNode.arguments) {
+      const expr = arg.expression;
+      if (expr?.type === "Identifier") {
+        variableName.add(expr.value);
       }
     }
 
@@ -207,13 +226,32 @@ const isExpressionStartsWith = (
     currentNode = currentNode.callee.object;
   }
 
-  console.log({
-    foundStartIdentifier,
-    variableName,
-  });
-
   return {
     keep: foundStartIdentifier,
     variableName,
   };
+};
+
+/**
+ * get variable module by identifier name
+ * @param nodes
+ * @param identifierName
+ * @returns
+ */
+const getVariableModuleByIdentifierName = (
+  nodes: ModuleItem[],
+  identifierName: string
+): ModuleItem | null => {
+  for (const node of nodes) {
+    if (node.type === "VariableDeclaration") {
+      const declaration = node.declarations[0];
+      if (
+        declaration.id.type === "Identifier" &&
+        declaration.id.value === identifierName
+      ) {
+        return node;
+      }
+    }
+  }
+  return null;
 };
