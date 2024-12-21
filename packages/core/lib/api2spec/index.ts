@@ -8,13 +8,13 @@ export const api2spec = async (api: string): Promise<object> => {
   await initSwc();
 
   // use typescript parser, because typescript is a superset of javascript
-  const ast: Module = await parse(api, {
+  const AST: Module = await parse(api, {
     syntax: "typescript",
   });
-  const { AST: usefulAst, otherModuleItems } = filterAST(ast);
+  const { AST: usefulAst, otherModuleItems } = filterAST(AST);
   const { code } = await print(usefulAst);
 
-  const instantiationInfo = getChartInstantiationInfo(ast);
+  const instantiationInfo = getChartInstantiationInfo(AST);
 
   const spec = evalChartCode(
     `${code}\nreturn ${instantiationInfo.instanceName}.options()`
