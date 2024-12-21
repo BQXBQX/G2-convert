@@ -5,7 +5,7 @@ import type { Module, ModuleItem } from "@swc/wasm-web";
  * @param ast AST Module
  * @returns instance name and the ModuleItem containing the Chart instantiation
  */
-export const getInstanceInfo = (
+export const getChartInstantiationInfo = (
   ast: Module
 ): { instanceName: string | null; moduleItem: ModuleItem | null } => {
   for (const node of ast.body) {

@@ -1,5 +1,5 @@
 export * from "./filter";
-export * from "./getInstanceInfo";
+export * from "./getChartInstantiationInfo";
 
 export function removeUndefinedProperties(obj: object) {
   return Object.fromEntries(
