@@ -1,4 +1,5 @@
 import { Chart as G2Chart } from "@antv/g2";
+import eventEmitter from "../common/eventEmitter";
 
 interface ChartOptions {
   type?: string;
@@ -54,7 +55,7 @@ const sortKeys = (options: ChartOptions): ChartOptions => {
   return newOptions;
 };
 
-class Chart extends G2Chart {
+export class Chart extends G2Chart {
   // @ts-ignore
   options() {
     // @ts-ignore
@@ -68,6 +69,11 @@ class Chart extends G2Chart {
         ? { ...children[0], ...rest }
         : { type, children, ...rest };
     return sortKeys(topLevel);
+  }
+
+  public toSpec() {
+    eventEmitter.emit("spec", this.options());
+    return this;
   }
 }
 

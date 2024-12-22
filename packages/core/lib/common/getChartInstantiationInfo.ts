@@ -2,13 +2,15 @@ import type { Module, ModuleItem } from "@swc/wasm-web";
 
 /**
  * Get the instance name of new Chart() from AST
- * @param ast AST Module
+ * @param AST AST Module
  * @returns instance name and the ModuleItem containing the Chart instantiation
  */
-export const getInstanceInfo = (
-  ast: Module
+// TODO: now only support single instantiation
+// TODO: now only support chart instantiation, need to support alias of chart
+export const getChartInstantiationInfo = (
+  AST: Module
 ): { instanceName: string | null; moduleItem: ModuleItem | null } => {
-  for (const node of ast.body) {
+  for (const node of AST.body) {
     if (node.type === "VariableDeclaration") {
       const declaration = node.declarations[0];
 
