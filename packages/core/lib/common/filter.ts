@@ -113,6 +113,8 @@ const removeImports = (
 
 /**
  * Filter function to remove all console statements (log, warn, error, info, debug, etc.)
+ * @param node
+ * @returns
  */
 const removeConsoleLogs = (
   node: ModuleItem
@@ -156,6 +158,8 @@ const removeConsoleLogs = (
 
 /**
  * Filter function to remove G2 chart render statements, because we don't need it
+ * @param node
+ * @returns
  */
 const removeChartRender = (
   node: ModuleItem
