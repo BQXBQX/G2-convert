@@ -10,11 +10,12 @@
     "package": "plasmo package"
   },
   "dependencies": {
+    "@ant-design/icons": "^5.5.2",
+    "@g2-convert/core": "workspace:*",
     "antd": "^5.22.5",
     "plasmo": "0.89.4",
     "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "@g2-convert/core": "workspace:*"
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
     "@types/chrome": "0.0.258",
