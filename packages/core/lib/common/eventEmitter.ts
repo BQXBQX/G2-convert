@@ -14,6 +14,14 @@ export class EventEmitter {
     this.events.get(eventName)?.push(callback);
   }
 
+  removeAllListeners(eventName?: string): void {
+    if (eventName) {
+      this.events.delete(eventName);
+    } else {
+      this.events.clear();
+    }
+  }
+
   off(eventName: string, callback: EventCallback): void {
     if (!this.events.has(eventName)) return;
 
