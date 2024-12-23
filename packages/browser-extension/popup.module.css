@@ -1,0 +1,61 @@
+.container {
+  width: 400px;
+  height: 500px;
+}
+
+.header {
+  height: 50px;
+  background-color: #fef4ff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.4rem;
+}
+
+.headerIcons {
+  display: flex;
+  height: 100%;
+}
+
+.settingIcon {
+  margin-right: 0.6rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.closeIcon {
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.mainContent {
+  padding: 0.5rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 50px);
+  gap: 0.5rem;
+}
+
+.segmentedStyle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+}
+
+.segmented {
+  width: 100%;
+  background-color: #fef4ff;
+}
+
+.codeMirror {
+  border: 1px solid #ccc;
+  overflow-x: hidden;
+  flex: 1;
+  border-style: unset;
+  font-size: 0.7rem;
+}
+
+.iframe {
+  display: none;
+}

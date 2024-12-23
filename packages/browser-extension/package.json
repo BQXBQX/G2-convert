@@ -11,7 +11,11 @@
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.2",
+    "@codemirror/lang-javascript": "^6.2.2",
+    "@codemirror/view": "^6.36.1",
     "@g2-convert/core": "workspace:*",
+    "@uiw/codemirror-theme-xcode": "^4.23.7",
+    "@uiw/react-codemirror": "^4.23.7",
     "antd": "^5.22.5",
     "plasmo": "0.89.4",
     "react": "18.2.0",
