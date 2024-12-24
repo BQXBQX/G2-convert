@@ -7,3 +7,10 @@ export function removeUndefinedProperties(obj: object) {
     Object.entries(obj).filter(([_, value]) => value !== undefined)
   );
 }
+
+export class ParsingError extends Error {
+  constructor(message: string, public readonly originalError?: Error) {
+    super(message);
+    this.name = "ParsingError";
+  }
+}

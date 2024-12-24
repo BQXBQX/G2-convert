@@ -1,19 +1,12 @@
 import initSwc, { parse, print } from "@swc/wasm-web";
 import type { Module } from "@swc/wasm-web";
-import { filterAST, getChartInstantiationInfo } from "../common";
+import { ParsingError, filterAST, getChartInstantiationInfo } from "../common";
 import Chart from "./chart";
 import { removeUndefinedProperties } from "../common";
 import eventEmitter from "../common/eventEmitter";
 
 interface ChartSpec {
   [key: string]: unknown;
-}
-
-class ParsingError extends Error {
-  constructor(message: string, public readonly originalError?: Error) {
-    super(message);
-    this.name = "ParsingError";
-  }
 }
 
 /**
@@ -38,6 +31,13 @@ export const api2spec = async (api: string): Promise<ChartSpec> => {
     });
 
     const { AST: usefulAst, otherModuleItems } = filterAST(AST);
+
+    if (AST.body.length === 0) {
+      throw new ParsingError(
+        "Can't find any useful module, please check your api"
+      );
+    }
+
     const { code } = await print(usefulAst);
     const instantiationInfo = getChartInstantiationInfo(AST);
 
