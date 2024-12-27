@@ -1,5 +1,12 @@
-import { ParsingError, filterAST } from "../common";
-import initSwc, { parse, type Module } from "@swc/wasm-web";
+import { ParsingError, filterAST, getOptions } from "../common";
+import initSwc, { parse, type Module, print } from "@swc/wasm-web";
+import { generateApiSeparation } from "./generateApiSeparation";
+
+const value = `
+chart.options({
+  type: "interval",
+});
+`;
 
 /**
  * Convert Spec to API
@@ -28,8 +35,18 @@ export const spec2api = async (spec: string): Promise<string> => {
         "Can't find any useful module, please check your spec"
       );
     }
+
+    const options = getOptions(usefulAst.body);
+
+    const apiModuleItems = generateApiSeparation(options);
+
+    const apiCode = await print({ ...usefulAst, body: apiModuleItems });
+
+    console.log("🚀 ~ file: index.ts:67 ~ apiCode:", apiCode);
   } catch (error) {
     console.log(error);
   }
   return "";
 };
+
+spec2api(value);
