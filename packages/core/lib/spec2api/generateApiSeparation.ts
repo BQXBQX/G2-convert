@@ -1,6 +1,42 @@
 /**
- * convert options argument to api
- * is not mature, welcome to contribute to improve this
+ * G2 API Converter - Separates combined options into individual API calls
+ *
+ * This module transforms a single G2 options object into a series of chainable API calls.
+ * Each property in the options object is converted to its corresponding G2 API method.
+ *
+ * Example Transformation:
+ *
+ * Input (Combined Options):
+ * ```typescript
+ * chart.options({
+ *   type: "interval",
+ *   autoFit: true,
+ *   data: {
+ *     type: "fetch",
+ *     value: "https://gw.alipayobjects.com/os/bmw-prod/fb9db6b7-23a5-4c23-bbef-c54a55fee580.csv",
+ *     filter: () => {
+ *       return;
+ *     },
+ *   },
+ *   encode: { x: "letter", y: "frequency" },
+ * });
+ * ```
+ *
+ * Output (Separated API Calls):
+ * ```typescript
+ * chart.interval();
+ * chart.data({
+ *     type: "fetch",
+ *     value: "https://gw.alipayobjects.com/os/bmw-prod/fb9db6b7-23a5-4c23-bbef-c54a55fee580.csv",
+ *     filter: () => {
+ *       return;
+ *     }
+ *   });
+ * chart.autoFit(true);
+ * ```
+ *
+ *
+ * @module generateApiSeparation
  */
 import {
   Argument,
@@ -237,6 +273,6 @@ export const generateApiSeparation = (options: Argument): ModuleItem[] => {
     .process(processType)
     .process((opt) => processDefault(opt, "data"))
     .process((opt) => processDefault(opt, "coordinate"))
-    .process((opt) => processDefault(opt, "autoFit"))
+    // .process((opt) => processDefault(opt, "autoFit"))
     .getResult();
 };

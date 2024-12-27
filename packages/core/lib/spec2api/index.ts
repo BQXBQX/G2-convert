@@ -1,11 +1,31 @@
-import { ParsingError, filterAST, getOptions } from "../common";
+import {
+  ParsingError,
+  filterAST,
+  getChartInstantiationInfo,
+  getOptions,
+} from "../common";
 import initSwc, { parse, type Module, print } from "@swc/wasm-web";
 import { generateApiSeparation } from "./generateApiSeparation";
 
 const value = `
+import { Chart } from "@antv/g2";
+
+const chart = new Chart({ container: "container" });
+
 chart.options({
   type: "interval",
+  data: {
+    type: "fetch",
+    value:
+      "https://gw.alipayobjects.com/os/bmw-prod/fb9db6b7-23a5-4c23-bbef-c54a55fee580.csv",
+    filter: () => {
+      return;
+    },
+  },
+  encode: { x: "letter", y: "frequency" },
 });
+
+chart.render();
 `;
 
 /**
@@ -30,6 +50,12 @@ export const spec2api = async (spec: string): Promise<string> => {
 
     const { AST: usefulAst, otherModuleItems } = filterAST(AST);
 
+    const instantiationInfo = getChartInstantiationInfo(usefulAst);
+
+    if (!instantiationInfo.moduleItem || !instantiationInfo.instanceName) {
+      throw new ParsingError("Can't find chart instantiation");
+    }
+
     if (AST.body.length === 0) {
       throw new ParsingError(
         "Can't find any useful module, please check your spec"
@@ -40,13 +66,24 @@ export const spec2api = async (spec: string): Promise<string> => {
 
     const apiModuleItems = generateApiSeparation(options);
 
-    const apiCode = await print({ ...usefulAst, body: apiModuleItems });
+    const apiCode = await print({
+      ...usefulAst,
+      body: [
+        ...otherModuleItems.import,
+        instantiationInfo.moduleItem,
+        ...apiModuleItems,
+        ...otherModuleItems.render,
+        ...otherModuleItems.useless,
+      ],
+    });
 
-    console.log("🚀 ~ file: index.ts:67 ~ apiCode:", apiCode);
+    return apiCode.code;
   } catch (error) {
     console.log(error);
   }
   return "";
 };
 
-spec2api(value);
+spec2api(value).then((code) => {
+  console.log(code);
+});
