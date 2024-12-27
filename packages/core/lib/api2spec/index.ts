@@ -1,35 +1,99 @@
 import initSwc, { parse, print } from "@swc/wasm-web";
 import type { Module } from "@swc/wasm-web";
-import { filterAST, getChartInstantiationInfo } from "../common";
+import { ParsingError, filterAST, getChartInstantiationInfo } from "../common";
 import Chart from "./chart";
 import { removeUndefinedProperties } from "../common";
 import eventEmitter from "../common/eventEmitter";
 
-export const api2spec = async (api: string): Promise<object> => {
-  await initSwc();
+interface ChartSpec {
+  [key: string]: unknown;
+}
 
-  // use typescript parser, because typescript is a superset of javascript
-  const AST: Module = await parse(api, {
-    syntax: "typescript",
-  });
-  const { AST: usefulAst, otherModuleItems } = filterAST(AST);
-  const { code } = await print(usefulAst);
+/**
+ * Convert API to Spec
+ * api2spec is working by eval chart code
+ * @param api
+ * @returns
+ */
+export const api2spec = async (api: string): Promise<ChartSpec> => {
+  if (!api || typeof api !== "string") {
+    throw new ParsingError("Invalid API input: must be a non-empty string");
+  }
 
-  const instantiationInfo = getChartInstantiationInfo(AST);
+  try {
+    await initSwc();
 
-  let spec: object = {};
+    // Parse with TypeScript for better language support, typescript target is es2022
+    const AST: Module = await parse(api, {
+      syntax: "typescript",
+      target: "es2022",
+      tsx: false,
+    });
 
-  eventEmitter.once("spec", (value) => {
-    spec = value as object;
-  });
+    const { AST: usefulAst, otherModuleItems } = filterAST(AST);
 
-  evalChartCode(`${code}\n ${instantiationInfo.instanceName}.toSpec();`);
+    if (AST.body.length === 0) {
+      throw new ParsingError(
+        "Can't find any useful module, please check your api"
+      );
+    }
 
-  return removeUndefinedProperties(spec);
+    const { code } = await print(usefulAst);
+    const instantiationInfo = getChartInstantiationInfo(AST);
+
+    if (!instantiationInfo.instanceName) {
+      throw new ParsingError("No chart instance found in the provided code");
+    }
+
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        cleanup();
+        reject(new ParsingError("Timeout: Spec generation took too long"));
+      }, 5000);
+
+      const cleanup = () => {
+        clearTimeout(timeoutId);
+        eventEmitter.removeAllListeners("spec");
+      };
+
+      eventEmitter.once("spec", (value) => {
+        cleanup();
+        const cleanSpec = removeUndefinedProperties(value as ChartSpec);
+        resolve(cleanSpec);
+      });
+
+      try {
+        evalChartCode(`${code}\n ${instantiationInfo.instanceName}.toSpec();`);
+      } catch (error) {
+        cleanup();
+        reject(
+          new ParsingError("Failed to evaluate chart code", error as Error)
+        );
+      }
+    });
+  } catch (error) {
+    throw new ParsingError("Failed to process API code", error as Error);
+  }
 };
 
+/**
+ * Evaluate chart code
+ * use try & catch to handle errors
+ */
 export const evalChartCode = (code: string): object => {
-  const context = { Chart };
-  const wrappedCode = new Function("context", `with (context) { ${code} }`);
-  return wrappedCode(context);
+  const safeContext = Object.create(null);
+  Object.assign(safeContext, { Chart });
+
+  const wrappedCode = new Function(
+    "context",
+    `with (context) { 
+       try {
+         ${code}
+       } catch (error) {
+         throw new Error('Chart code evaluation failed: ' + error.message);
+       }
+     }`
+  );
+
+  return wrappedCode(safeContext);
 };
