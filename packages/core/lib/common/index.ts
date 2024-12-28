@@ -2,7 +2,6 @@ export * from "./filter";
 export * from "./getChartInstantiationInfo";
 export * from "./getChartRelateModule";
 export * from "./getOptions";
-export * from "./eventEmitter";
 
 // remove undefined properties when return
 export function removeUndefinedProperties(obj: object) {

@@ -54,27 +54,7 @@ import {
   SpreadElement,
 } from "@swc/wasm-web";
 import { removeObjectFromArray } from "../common";
-
-// Type guards for AST nodes
-export const TypeGuards = {
-  isKeyValueProperty: (
-    prop: Property | SpreadElement
-  ): prop is KeyValueProperty => prop.type === "KeyValueProperty",
-
-  isIdentifier: (key: any): key is Identifier => key.type === "Identifier",
-
-  isObjectExpression: (expr: Expression): expr is ObjectExpression =>
-    expr.type === "ObjectExpression",
-
-  isStringLiteral: (expr: Expression): expr is StringLiteral =>
-    expr.type === "StringLiteral",
-
-  isArrayExpression: (expr: Expression): expr is ArrayExpression =>
-    expr.type === "ArrayExpression",
-
-  isBooleanLiteral: (expr: Expression): expr is BooleanLiteral =>
-    expr.type === "BooleanLiteral",
-};
+import { TypeGuards } from "../common/typeGurads";
 
 // Processing functions
 const createCall = (

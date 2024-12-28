@@ -1,5 +1,5 @@
 import { Argument, KeyValueProperty, ObjectExpression } from "@swc/wasm-web";
-import { TypeGuards } from "./generateApiSeparation";
+import { TypeGuards } from "../common/typeGurads";
 
 export const getKeyProperty = (
   options: Argument,
