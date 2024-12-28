@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "lint": "biome lint",
-    "format": "biome format --fix"
+    "format": "biome format --fix",
+    "test": "pnpm --filter @g2-convert/test test"
   },
   "keywords": [],
   "author": "",
