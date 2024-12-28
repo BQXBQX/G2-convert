@@ -2,11 +2,27 @@ import { useEffect, useRef, useState } from "react";
 import "./style.css";
 // @ts-ignore
 import logo from "./assets/logo.svg";
-import { SettingOutlined, CloseCircleOutlined } from "@ant-design/icons";
+import {
+  SettingOutlined,
+  CloseCircleOutlined,
+  ApiOutlined,
+  ControlOutlined,
+} from "@ant-design/icons";
 import { Button, Segmented } from "antd";
+import { Provider } from "~provider";
+import ReactCodeMirror from "@uiw/react-codemirror";
+import { xcodeLight } from "@uiw/codemirror-theme-xcode";
+import { EditorView } from "@codemirror/view";
+import { javascript } from "@codemirror/lang-javascript";
+import styles from "./popup.module.css";
 
-const value = `
-import { Chart } from '@antv/g2';
+enum TransformState {
+  INIT,
+  TRANSFORM,
+  TRANSFORMED,
+}
+
+const value = `import { Chart } from '@antv/g2';
 
 const chart = new Chart({
   container: 'container',
@@ -31,74 +47,85 @@ chart.render();
 function IndexPopup() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [spec, setSpec] = useState();
+  const [transformState, setTransformState] = useState<TransformState>(
+    TransformState.INIT
+  );
+  const [monacoValue, setMonacoValue] = useState(value);
 
   useEffect(() => {
     window.addEventListener("message", (event) => {
-      console.log(`EVAL output: ${event.data}`);
-      setSpec(event.data);
+      console.log(`EVAL output: ${JSON.stringify(event.data)}`);
     });
   }, []);
-  const [data, setData] = useState("");
 
   return (
-    <div style={{ width: "400px", height: "650px" }}>
-      <iframe
-        title="sandbox"
-        src="sandbox.html"
-        ref={iframeRef}
-        style={{ display: "none" }}
-      />
-      <header
-        style={{
-          height: "50px",
-          backgroundColor: "#fef4ff",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 1.4rem",
-        }}
-      >
-        <img src={logo} alt="logo" />
-        <div style={{ display: "flex", height: "100%" }}>
-          <SettingOutlined
-            style={{
-              marginRight: "1rem",
-              fontSize: "1rem",
-              cursor: "pointer",
-            }}
-          />
-          <CloseCircleOutlined
-            onClick={() => window.close()}
-            style={{
-              fontSize: "1rem",
-              cursor: "pointer",
-            }}
-          />
-        </div>
-      </header>
-      <div style={{ padding: "0.5rem 1rem" }}>
-        <Segmented<string>
-          options={["API", "Spec"]}
-          onChange={(value) => {
-            console.log(value);
-          }}
-          style={{ width: "100%", backgroundColor: "#fef4ff" }}
-          block
+    <Provider>
+      <div className={styles.container}>
+        <iframe
+          title="sandbox"
+          src="sandbox.html"
+          ref={iframeRef}
+          className={styles.iframe}
         />
-        {spec && (
-          <pre>
-            <code>{JSON.stringify(spec, null, 2)}</code>
-          </pre>
-        )}
-        <Button
-          onClick={() => {
-            iframeRef.current?.contentWindow?.postMessage(value, "*");
-          }}
-        >
-          Convert
-        </Button>
+        <header className={styles.header}>
+          <img src={logo} alt="logo" />
+          <div className={styles.headerIcons}>
+            <SettingOutlined className={styles.settingIcon} />
+            <CloseCircleOutlined
+              onClick={() => window.close()}
+              className={styles.closeIcon}
+            />
+          </div>
+        </header>
+        <div className={styles.mainContent}>
+          <Segmented<string>
+            options={[
+              {
+                label: (
+                  <div className={styles.segmentedStyle}>
+                    <ApiOutlined />
+                    <span>API</span>
+                  </div>
+                ),
+                value: "api",
+              },
+              {
+                label: (
+                  <div className={styles.segmentedStyle}>
+                    <ControlOutlined />
+                    <span>Spec</span>
+                  </div>
+                ),
+                value: "spec",
+              },
+            ]}
+            onChange={(value) => {
+              console.log(value);
+            }}
+            className={styles.segmented}
+            block
+          />
+          <ReactCodeMirror
+            value={monacoValue}
+            width="100%"
+            height="100%"
+            maxHeight="100%"
+            theme={xcodeLight}
+            extensions={[EditorView.lineWrapping, javascript()]}
+            className={styles.codeMirror}
+          />
+          <Button
+            type="primary"
+            onClick={() => {
+              iframeRef.current?.contentWindow?.postMessage(value, "*");
+            }}
+            className={styles.convertButton}
+          >
+            <strong>Convert to Spec</strong>
+          </Button>
+        </div>
       </div>
-    </div>
+    </Provider>
   );
 }
 
