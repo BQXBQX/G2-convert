@@ -6,6 +6,7 @@ import {
 } from "../common";
 import initSwc, { parse, type Module, print } from "@swc/wasm-web";
 import { generateApiSeparation } from "./generateApiSeparation";
+import { getKeyProperty } from "./getKeyProperty";
 
 const value = `
 import { Chart } from "@antv/g2";
@@ -14,6 +15,7 @@ const chart = new Chart({ container: "container" });
 
 chart.options({
   type: "interval",
+  autoFit: true,
   data: {
     type: "fetch",
     value:
@@ -63,6 +65,15 @@ export const spec2api = async (spec: string): Promise<string> => {
     }
 
     const options = getOptions(usefulAst.body);
+
+    const autoFitProperties = getKeyProperty(options, "autoFit");
+
+    if (autoFitProperties.length > 0) {
+      // @ts-ignore
+      instantiationInfo.moduleItem.declarations[0].init.arguments[0].expression.properties.push(
+        ...autoFitProperties
+      );
+    }
 
     const apiModuleItems = generateApiSeparation(options);
 

@@ -50,13 +50,16 @@ import {
   StringLiteral,
   CallExpression,
   Span,
+  Property,
+  SpreadElement,
 } from "@swc/wasm-web";
 import { removeObjectFromArray } from "../common";
 
 // Type guards for AST nodes
 export const TypeGuards = {
-  isKeyValueProperty: (prop: any): prop is KeyValueProperty =>
-    prop.type === "KeyValueProperty",
+  isKeyValueProperty: (
+    prop: Property | SpreadElement
+  ): prop is KeyValueProperty => prop.type === "KeyValueProperty",
 
   isIdentifier: (key: any): key is Identifier => key.type === "Identifier",
 
@@ -125,14 +128,21 @@ interface PropertyMatcher {
  */
 const findProperties = (
   options: ObjectExpression,
-  matchers: PropertyMatcher | PropertyMatcher[]
+  matchers?: PropertyMatcher | PropertyMatcher[]
 ): KeyValueProperty[] => {
+  // If no matchers provided, return all KeyValueProperties
+  if (!matchers) {
+    return options.properties.filter(
+      (prop): prop is KeyValueProperty =>
+        TypeGuards.isKeyValueProperty(prop) && TypeGuards.isIdentifier(prop.key)
+    );
+  }
+
   const matcherArray = Array.isArray(matchers) ? matchers : [matchers];
   const result: KeyValueProperty[] = [];
-  const remainingProps = [...options.properties];
 
   for (const matcher of matcherArray) {
-    for (const prop of remainingProps) {
+    for (const prop of options.properties) {
       if (
         TypeGuards.isKeyValueProperty(prop) &&
         TypeGuards.isIdentifier(prop.key) &&
@@ -140,7 +150,7 @@ const findProperties = (
         (!matcher.handler || matcher.handler(prop))
       ) {
         result.push(prop);
-        removeObjectFromArray(remainingProps, prop);
+        removeObjectFromArray(options.properties, prop);
       }
     }
   }
@@ -154,12 +164,8 @@ const findProperties = (
  * @param key Property key to process
  * @param methodName Optional method name for the call
  */
-const processDefault = (
-  options: ObjectExpression,
-  key: string,
-  methodName: string = key
-): CallExpression[] => {
-  const props = findProperties(options, { key });
+const processDefault = (options: ObjectExpression): CallExpression[] => {
+  const props = findProperties(options);
   if (!props.length) return [];
 
   const results: CallExpression[] = [];
@@ -172,7 +178,9 @@ const processDefault = (
       TypeGuards.isObjectExpression(value) ||
       TypeGuards.isBooleanLiteral(value)
     ) {
-      results.push(createCall(methodName, [createArgument(value)]));
+      results.push(
+        createCall((prop.key as Identifier).value, [createArgument(value)])
+      );
     }
 
     // Handle function value
@@ -180,7 +188,9 @@ const processDefault = (
       value.type === "ArrowFunctionExpression" ||
       value.type === "FunctionExpression"
     ) {
-      results.push(createCall(methodName, [createArgument(value)]));
+      results.push(
+        createCall((prop.key as Identifier).value, [createArgument(value)])
+      );
     }
   }
 
@@ -188,16 +198,23 @@ const processDefault = (
 };
 
 /**
+ * remove autoFit from options, it only need to use when initialization
+ */
+const processAutoFit = (options: ObjectExpression): CallExpression[] => {
+  const props = findProperties(options, {
+    key: "autoFit",
+    handler: (prop) => TypeGuards.isBooleanLiteral(prop.value),
+  });
+  return [];
+};
+/**
  * Process type property
- * Supports view/layer types and function types
+ * TODO: support layer/facet type
  */
 const processType = (options: ObjectExpression): CallExpression[] => {
   const props = findProperties(options, {
     key: "type",
-    handler: (prop) =>
-      TypeGuards.isStringLiteral(prop.value) ||
-      prop.value.type === "ArrowFunctionExpression" ||
-      prop.value.type === "FunctionExpression",
+    handler: (prop) => TypeGuards.isStringLiteral(prop.value),
   });
 
   if (!props.length) return [];
@@ -271,8 +288,7 @@ export const generateApiSeparation = (options: Argument): ModuleItem[] => {
 
   return new ASTChainBuilder(options.expression)
     .process(processType)
-    .process((opt) => processDefault(opt, "data"))
-    .process((opt) => processDefault(opt, "coordinate"))
-    // .process((opt) => processDefault(opt, "autoFit"))
+    .process(processAutoFit)
+    .process(processDefault)
     .getResult();
 };
