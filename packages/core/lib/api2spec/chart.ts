@@ -41,7 +41,7 @@ const sortObject = (
 ): ChartOptions => {
   const autoFit = Object.keys(obj).find((d) => d === "autoFit");
   const filter = ([key, _]: [string, unknown]): boolean =>
-    !autoFit ? true : !(key === "width" || key === "height");
+    !autoFit || !obj[autoFit] ? true : !(key === "width" || key === "height");
 
   return Object.fromEntries(
     Object.entries(obj)
@@ -62,12 +62,20 @@ export class Chart extends G2Chart {
     // biome-ignore lint/style/noArguments: <explanation>
     if (arguments.length !== 0) return super.options(...arguments);
     const options = super.options();
+    console.log("🚀 ~ file: chart.ts:65 ~ options:", options.height);
+
     // @ts-ignore
     const { type, children, key, ...rest } = options;
     const topLevel =
       type === "view" && Array.isArray(children) && children.length === 1
         ? { ...children[0], ...rest }
         : { type, children, ...rest };
+
+    console.log(
+      "🚀 ~ file: chart.ts:74 ~ sortKeys(topLevel):",
+      topLevel,
+      sortKeys(topLevel).height
+    );
     return sortKeys(topLevel);
   }
 
