@@ -29,6 +29,7 @@ chart.render();
 
 test("simple-bar spec2api test", async () => {
   const code = await spec2api(value);
+  console.log("🚀 ~ file: simple-bar.test.js:32 ~ code:", code)
 
   const options = await api2spec(code);
 
