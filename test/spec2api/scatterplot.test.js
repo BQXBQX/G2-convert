@@ -17,7 +17,7 @@ chart.options({
   },
   encode: { x: "mpg", y: "hp" },
   scale: { x: { nice: true, domainMax: 38 }, y: { nice: true } },
-  label: [
+  labels: [
     {
       text: "name",
       stroke: "#fff",
@@ -37,6 +37,7 @@ chart.render();
 
 test("Scatterplot Test", async () => {
   const code = await spec2api(value);
+  console.log("🚀 ~ file: scatterplot.test.js:40 ~ code:", code)
   const options = await api2spec(code);
 
   const expected = {

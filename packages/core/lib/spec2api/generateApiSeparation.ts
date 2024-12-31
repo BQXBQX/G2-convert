@@ -52,7 +52,6 @@ import { TypeGuards } from "../common/typeGurads";
 
 // the all options of chart copy from docs of antv
 const optionsKey = [
-  "label",
   "interval",
   "rect",
   "point",
@@ -263,6 +262,27 @@ const processType = (options: ObjectExpression): CallExpression[] => {
   return results;
 };
 
+/**
+ * Process label options
+ * spec: labels
+ * api: label
+ */
+const processLabel = (options: ObjectExpression): CallExpression[] => {
+  const props = findProperties(options, {
+    key: "labels",
+  });
+
+  if (!props.length) return [];
+
+  const results: CallExpression[] = [];
+
+  for (const prop of props) {
+    results.push(createCall("label", [createArgument(prop.value)]));
+  }
+
+  return results;
+};
+
 type ProcessFunction = (
   options: ObjectExpression
 ) => CallExpression | CallExpression[] | null;
@@ -313,6 +333,7 @@ export const generateApiSeparation = (options: Argument): ModuleItem[] => {
 
   return new ASTChainBuilder(options.expression)
     .process(processType)
+    .process(processLabel)
     .process((options) => processDefault(options, optionsKey))
     .getResult();
 };
