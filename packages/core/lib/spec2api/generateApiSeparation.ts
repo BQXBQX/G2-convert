@@ -40,21 +40,72 @@
  */
 import {
   Argument,
-  ArrayExpression,
-  BooleanLiteral,
   Expression,
   Identifier,
   KeyValueProperty,
   ModuleItem,
   ObjectExpression,
-  StringLiteral,
   CallExpression,
   Span,
-  Property,
-  SpreadElement,
 } from "@swc/wasm-web";
 import { removeObjectFromArray } from "../common";
 import { TypeGuards } from "../common/typeGurads";
+
+// the all options of chart copy from docs of antv
+const optionsKey = [
+  "interval",
+  "rect",
+  "point",
+  "area",
+  "line",
+  "vector",
+  "link",
+  "polygon",
+  "image",
+  "text",
+  "lineX",
+  "lineY",
+  "range",
+  "rangeX",
+  "rangeY",
+  "connector",
+  "sankey",
+  "treemap",
+  "boxplot",
+  "density",
+  "heatmap",
+  "shape",
+  "pack",
+  "forceGraph",
+  "tree",
+  "wordCloud",
+  "gauge",
+  "view",
+  "spaceLayer",
+  "spaceFlex",
+  "facetRect",
+  "facetCircle",
+  "repeatMatrix",
+  "timingKeyframe",
+  "geoView",
+  "geoPath",
+  "point3D",
+  "attr",
+  "width",
+  "height",
+  "title",
+  "encode",
+  "options",
+  "data",
+  "transform",
+  "theme",
+  "style",
+  "scale",
+  "coordinate",
+  "axis",
+  "legend",
+  "labelTransform",
+];
 
 // Processing functions
 const createCall = (
@@ -96,7 +147,7 @@ const createArgument = (expr: Expression): Argument => {
 };
 
 interface PropertyMatcher {
-  key: string;
+  key: string | string[];
   handler?: (prop: KeyValueProperty) => boolean;
 }
 
@@ -126,7 +177,9 @@ const findProperties = (
       if (
         TypeGuards.isKeyValueProperty(prop) &&
         TypeGuards.isIdentifier(prop.key) &&
-        prop.key.value === matcher.key &&
+        (Array.isArray(matcher.key)
+          ? matcher.key.includes(prop.key.value)
+          : prop.key.value === matcher.key) &&
         (!matcher.handler || matcher.handler(prop))
       ) {
         result.push(prop);
@@ -144,8 +197,11 @@ const findProperties = (
  * @param key Property key to process
  * @param methodName Optional method name for the call
  */
-const processDefault = (options: ObjectExpression): CallExpression[] => {
-  const props = findProperties(options);
+const processDefault = (
+  options: ObjectExpression,
+  key: string | string[]
+): CallExpression[] => {
+  const props = findProperties(options, { key });
   if (!props.length) return [];
 
   const results: CallExpression[] = [];
@@ -177,16 +233,6 @@ const processDefault = (options: ObjectExpression): CallExpression[] => {
   return results;
 };
 
-/**
- * remove autoFit from options, it only need to use when initialization
- */
-const processAutoFit = (options: ObjectExpression): CallExpression[] => {
-  const props = findProperties(options, {
-    key: "autoFit",
-    handler: (prop) => TypeGuards.isBooleanLiteral(prop.value),
-  });
-  return [];
-};
 /**
  * Process type property
  * TODO: support layer/facet type
@@ -268,7 +314,6 @@ export const generateApiSeparation = (options: Argument): ModuleItem[] => {
 
   return new ASTChainBuilder(options.expression)
     .process(processType)
-    .process(processAutoFit)
-    .process(processDefault)
+    .process((options) => processDefault(options, optionsKey))
     .getResult();
 };

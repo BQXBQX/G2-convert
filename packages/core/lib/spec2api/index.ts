@@ -17,15 +17,32 @@ const chart = new Chart({ container: "container" });
 chart.options({
   type: "interval",
   autoFit: true,
-  data: {
-    type: "fetch",
-    value:
-      "https://gw.alipayobjects.com/os/bmw-prod/fb9db6b7-23a5-4c23-bbef-c54a55fee580.csv",
-    filter: () => {
-      return;
+  data: [
+    { type: "分类一", value: 27 },
+    { type: "分类二", value: 25 },
+    { type: "分类三", value: 18 },
+    { type: "分类四", value: 15 },
+    { type: "分类五", value: 10 },
+    { type: "Other", value: 5 },
+  ],
+  encode: { y: "value", color: "type", shape: "petal" },
+  transform: [{ type: "stackY" }],
+  coordinate: { type: "theta" },
+  style: { offset: 0.5, ratio: 0.2 },
+  animate: { enter: { type: "fadeIn" } },
+  legend: false,
+  labels: [
+    {
+      text: (d, i, data) =>
+        d.type +
+        "\
+" +
+        d.value,
+      radius: 0.9,
+      fontSize: 9,
+      dy: 12,
     },
-  },
-  encode: { x: "letter", y: "frequency" },
+  ],
 });
 
 chart.render();
