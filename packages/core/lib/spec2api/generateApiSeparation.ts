@@ -48,11 +48,11 @@ import {
   CallExpression,
   Span,
 } from "@swc/wasm-web";
-import { removeObjectFromArray } from "../common";
 import { TypeGuards } from "../common/typeGurads";
 
 // the all options of chart copy from docs of antv
 const optionsKey = [
+  "label",
   "interval",
   "rect",
   "point",
@@ -183,7 +183,6 @@ const findProperties = (
         (!matcher.handler || matcher.handler(prop))
       ) {
         result.push(prop);
-        removeObjectFromArray(options.properties, prop);
       }
     }
   }
