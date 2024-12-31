@@ -62,7 +62,6 @@ export class Chart extends G2Chart {
     // biome-ignore lint/style/noArguments: <explanation>
     if (arguments.length !== 0) return super.options(...arguments);
     const options = super.options();
-    console.log("🚀 ~ file: chart.ts:65 ~ options:", options.height);
 
     // @ts-ignore
     const { type, children, key, ...rest } = options;
@@ -71,11 +70,6 @@ export class Chart extends G2Chart {
         ? { ...children[0], ...rest }
         : { type, children, ...rest };
 
-    console.log(
-      "🚀 ~ file: chart.ts:74 ~ sortKeys(topLevel):",
-      topLevel,
-      sortKeys(topLevel).height
-    );
     return sortKeys(topLevel);
   }
 

@@ -6,30 +6,7 @@ import {
 } from "../common";
 import initSwc, { parse, type Module, print } from "@swc/wasm-web";
 import { generateApiSeparation } from "./generateApiSeparation";
-import { getKeyProperty } from "./getKeyProperty";
 import { injectInstantModule } from "./injectInstantModule";
-
-const value = `
-import { Chart } from "@antv/g2";
-
-const chart = new Chart({ container: "container" });
-
-chart.options({
-  type: "interval",
-  autoFit: true,
-  data: {
-    type: "fetch",
-    value:
-      "https://gw.alipayobjects.com/os/bmw-prod/fb9db6b7-23a5-4c23-bbef-c54a55fee580.csv",
-    filter: () => {
-      return;
-    },
-  },
-  encode: { x: "letter", y: "frequency" },
-});
-
-chart.render();
-`;
 
 /**
  * Convert Spec to API
@@ -88,7 +65,3 @@ export const spec2api = async (spec: string): Promise<string> => {
   }
   return "";
 };
-
-spec2api(value).then((code) => {
-  console.log(code);
-});

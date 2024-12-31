@@ -16,11 +16,3 @@ export class ParsingError extends Error {
     this.name = "ParsingError";
   }
 }
-
-export function removeObjectFromArray<T>(arr: T[], value: T): T[] {
-  const index = arr.findIndex((item) => item === value);
-  if (index !== -1) {
-    arr.splice(index, 1);
-  }
-  return arr;
-}

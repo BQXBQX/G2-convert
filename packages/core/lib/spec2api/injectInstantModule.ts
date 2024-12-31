@@ -5,13 +5,8 @@ import {
   Span,
 } from "@swc/wasm-web";
 import { getKeyProperty } from "./getKeyProperty";
-import { removeObjectFromArray } from "../common";
 import { TypeGuards } from "../common/typeGurads";
 
-/**
- * every inject is consumer,
- * will remove this keyValue after inject
- */
 const injectKeys = [
   "padding",
   "margin",
@@ -68,15 +63,6 @@ export const injectInstantModule = (
           continue;
         }
         initArguments[0].expression.properties.push(...props);
-      }
-
-      if (!TypeGuards.isObjectExpression(options.expression)) {
-        continue;
-      }
-
-      // remove key from options after consumed
-      for (const prop of props) {
-        removeObjectFromArray(options.expression.properties, prop);
       }
     }
   }
