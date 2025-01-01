@@ -145,6 +145,19 @@ const createArgument = (expr: Expression): Argument => {
   };
 };
 
+const createArgumentFromString = (str: string): Argument => {
+  return {
+    expression: {
+      type: "StringLiteral",
+      // @ts-ignore
+      ctxt: 0,
+      span: { start: 0, end: 0 } as Span,
+      value: str,
+      optional: false,
+    },
+  };
+};
+
 interface PropertyMatcher {
   key: string | string[];
   handler?: (prop: KeyValueProperty) => boolean;
@@ -283,6 +296,27 @@ const processLabel = (options: ObjectExpression): CallExpression[] => {
   return results;
 };
 
+const processTooltip = (options: ObjectExpression): CallExpression[] => {
+  const props = findProperties(options, {
+    key: "tooltip",
+  });
+
+  if (!props.length) return [];
+
+  const results: CallExpression[] = [];
+
+  for (const prop of props) {
+    results.push(
+      createCall("interaction", [
+        createArgumentFromString("tooltip"),
+        createArgument(prop.value),
+      ])
+    );
+  }
+
+  return results;
+};
+
 type ProcessFunction = (
   options: ObjectExpression
 ) => CallExpression | CallExpression[] | null;
@@ -334,6 +368,7 @@ export const generateApiSeparation = (options: Argument): ModuleItem[] => {
   return new ASTChainBuilder(options.expression)
     .process(processType)
     .process(processLabel)
+    .process(processTooltip)
     .process((options) => processDefault(options, optionsKey))
     .getResult();
 };
