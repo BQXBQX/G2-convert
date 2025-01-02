@@ -38,7 +38,6 @@ chart.render();
 
 test("Dodged Bar Chart Test", async () => {
   const code = await spec2api(value);
-  console.log("🚀 ~ file: dodged-bar-chart.test.js:41 ~ code:", code)
 
   const options = await api2spec(code);
 

@@ -44,7 +44,6 @@ chart.render();
 
 test("Diverging Bar Chart Test", async () => {
   const code = await spec2api(value);
-  console.log("🚀 ~ file: diverging-bar-chart.test.js:47 ~ code:", code);
 
   const options = await api2spec(code);
 

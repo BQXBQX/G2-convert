@@ -1,5 +1,5 @@
 /**
- * G2 API Converter - Separates combined options into individual API calls
+ * G2 API Converter - test combined options into individual API calls
  *
  * This module transforms a single G2 options object into a series of chainable API calls.
  * Each property in the options object is converted to its corresponding G2 API method.
@@ -22,21 +22,21 @@
  * });
  * ```
  *
- * Output (Separated API Calls):
+ * Output (link API Calls):
  * ```typescript
- * chart.interval();
- * chart.data({
+ * chart.interval()
+ *  .data({
  *     type: "fetch",
  *     value: "https://gw.alipayobjects.com/os/bmw-prod/fb9db6b7-23a5-4c23-bbef-c54a55fee580.csv",
  *     filter: () => {
  *       return;
  *     }
  *   });
- * chart.autoFit(true);
+ *
  * ```
  *
  *
- * @module generateApiSeparation
+ * @module generateApi
  */
 import {
   Argument,
@@ -47,6 +47,7 @@ import {
   ObjectExpression,
   CallExpression,
   Span,
+  MemberExpression,
 } from "@swc/wasm-web";
 import { TypeGuards } from "../common/typeGurads";
 
@@ -156,6 +157,20 @@ const createArgumentFromString = (str: string): Argument => {
       value: str,
       optional: false,
     },
+  };
+};
+
+const createCallExpression = (
+  callArguments: Argument[],
+  object: MemberExpression
+): CallExpression => {
+  return {
+    type: "CallExpression",
+    // @ts-ignore
+    ctxt: 0,
+    span: { start: 0, end: 0, ctxt: 0 } as Span,
+    callee: object,
+    arguments: callArguments,
   };
 };
 
@@ -344,21 +359,62 @@ class ASTChainBuilder implements ChainBuilder {
     return this;
   }
 
+  /**
+   * return link API Calls
+   */
   getResult(): ModuleItem[] {
-    const items: ModuleItem[] = [];
-    for (const call of this.calls) {
-      items.push({
-        type: "ExpressionStatement",
-        span: { start: 0, end: 0, ctxt: 0 },
-        expression: call,
+    if (this.calls.length === 0) {
+      return [];
+    }
+
+    const chartIdentifier: Identifier = {
+      type: "Identifier",
+      // @ts-ignore
+      ctxt: 0,
+      span: { start: 0, end: 0 } as Span,
+      value: "chart",
+      optional: false,
+    };
+
+    // Start with the first call
+    let chainedExpression: CallExpression = createCallExpression(
+      this.calls[0].arguments,
+      {
+        type: "MemberExpression",
+        // @ts-ignore
+        ctxt: 0,
+        span: { start: 0, end: 0 } as Span,
+        object: chartIdentifier,
+        // @ts-ignore
+        property: this.calls[0].callee.property,
+      }
+    );
+
+    // Chain subsequent calls
+    for (let i = 1; i < this.calls.length; i++) {
+      chainedExpression = createCallExpression(this.calls[i].arguments, {
+        type: "MemberExpression",
+        // @ts-ignore
+        ctxt: 0,
+        span: { start: 0, end: 0 } as Span,
+        object: chainedExpression,
+        // @ts-ignore
+        property: this.calls[i].callee.property,
       });
     }
-    return items;
+
+    return [
+      {
+        type: "ExpressionStatement",
+        span: { start: 0, end: 0, ctxt: 0 },
+        expression: chainedExpression,
+      },
+    ];
   }
 }
 
 // Export the function
-export const generateApiSeparation = (options: Argument): ModuleItem[] => {
+export const generateApi = (options: Argument): ModuleItem[] => {
   if (
     !options?.expression ||
     !TypeGuards.isObjectExpression(options.expression)
