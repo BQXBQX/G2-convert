@@ -72,9 +72,6 @@ importers:
       '@swc/wasm-web':
         specifier: ^1.10.1
         version: 1.10.3
-      prettier:
-        specifier: ^3.4.2
-        version: 3.4.2
       radash:
         specifier: ^12.1.0
         version: 12.1.0
@@ -4375,11 +4372,6 @@ packages:
   prebuild-install@7.1.2:
     resolution: {integrity: sha512-UnNke3IQb6sgarcZIDU3gbMeTp/9SSU1DAIkil7PrqG1vZlBtY5msYccSKSHDqa3hNg436IXK+SNImReuA1wEQ==}
     engines: {node: '>=10'}
-    hasBin: true
-
-  prettier@3.4.2:
-    resolution: {integrity: sha512-e9MewbtFo+Fevyuxn/4rrcDAaq0IYxPGLvObpQjiZBMAzB9IGmzlnG9RZy3FFas+eBMu2vA0CszMeduow5dIuQ==}
-    engines: {node: '>=14'}
     hasBin: true
 
   pretty-format@27.5.1:
@@ -10614,8 +10606,6 @@ snapshots:
       simple-get: 4.0.1
       tar-fs: 2.1.1
       tunnel-agent: 0.6.0
-
-  prettier@3.4.2: {}
 
   pretty-format@27.5.1:
     dependencies:
