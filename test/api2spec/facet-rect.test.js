@@ -58,7 +58,6 @@ chart.render();
 
 test("Facet Rect Test", async () => {
   const code = await api2spec(value);
-  // console.log("🚀 ~ file: facet-rect.test.js:61 ~ code:", code)
 
   const expected = {
     type: "facetRect",

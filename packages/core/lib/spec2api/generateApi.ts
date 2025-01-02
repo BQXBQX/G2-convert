@@ -1,5 +1,5 @@
 /**
- * G2 API Converter - Separates combined options into individual API calls
+ * G2 API Converter - test combined options into individual API calls
  *
  * This module transforms a single G2 options object into a series of chainable API calls.
  * Each property in the options object is converted to its corresponding G2 API method.
@@ -22,21 +22,21 @@
  * });
  * ```
  *
- * Output (Separated API Calls):
+ * Output (link API Calls):
  * ```typescript
- * chart.interval();
- * chart.data({
+ * chart.interval()
+ *  .data({
  *     type: "fetch",
  *     value: "https://gw.alipayobjects.com/os/bmw-prod/fb9db6b7-23a5-4c23-bbef-c54a55fee580.csv",
  *     filter: () => {
  *       return;
  *     }
  *   });
- * chart.autoFit(true);
+ *
  * ```
  *
  *
- * @module generateApiSeparation
+ * @module generateApi
  */
 import {
   Argument,
@@ -47,12 +47,12 @@ import {
   ObjectExpression,
   CallExpression,
   Span,
+  MemberExpression,
 } from "@swc/wasm-web";
 import { TypeGuards } from "../common/typeGurads";
 
 // the all options of chart copy from docs of antv
 const optionsKey = [
-  "label",
   "interval",
   "rect",
   "point",
@@ -105,6 +105,7 @@ const optionsKey = [
   "axis",
   "legend",
   "labelTransform",
+  "interaction",
 ];
 
 // Processing functions
@@ -143,6 +144,33 @@ const createCall = (
 const createArgument = (expr: Expression): Argument => {
   return {
     expression: expr,
+  };
+};
+
+const createArgumentFromString = (str: string): Argument => {
+  return {
+    expression: {
+      type: "StringLiteral",
+      // @ts-ignore
+      ctxt: 0,
+      span: { start: 0, end: 0 } as Span,
+      value: str,
+      optional: false,
+    },
+  };
+};
+
+const createCallExpression = (
+  callArguments: Argument[],
+  object: MemberExpression
+): CallExpression => {
+  return {
+    type: "CallExpression",
+    // @ts-ignore
+    ctxt: 0,
+    span: { start: 0, end: 0, ctxt: 0 } as Span,
+    callee: object,
+    arguments: callArguments,
   };
 };
 
@@ -263,6 +291,48 @@ const processType = (options: ObjectExpression): CallExpression[] => {
   return results;
 };
 
+/**
+ * Process label options
+ * spec: labels
+ * api: label
+ */
+const processLabel = (options: ObjectExpression): CallExpression[] => {
+  const props = findProperties(options, {
+    key: "labels",
+  });
+
+  if (!props.length) return [];
+
+  const results: CallExpression[] = [];
+
+  for (const prop of props) {
+    results.push(createCall("label", [createArgument(prop.value)]));
+  }
+
+  return results;
+};
+
+const processTooltip = (options: ObjectExpression): CallExpression[] => {
+  const props = findProperties(options, {
+    key: "tooltip",
+  });
+
+  if (!props.length) return [];
+
+  const results: CallExpression[] = [];
+
+  for (const prop of props) {
+    results.push(
+      createCall("interaction", [
+        createArgumentFromString("tooltip"),
+        createArgument(prop.value),
+      ])
+    );
+  }
+
+  return results;
+};
+
 type ProcessFunction = (
   options: ObjectExpression
 ) => CallExpression | CallExpression[] | null;
@@ -289,21 +359,62 @@ class ASTChainBuilder implements ChainBuilder {
     return this;
   }
 
+  /**
+   * return link API Calls
+   */
   getResult(): ModuleItem[] {
-    const items: ModuleItem[] = [];
-    for (const call of this.calls) {
-      items.push({
-        type: "ExpressionStatement",
-        span: { start: 0, end: 0, ctxt: 0 },
-        expression: call,
+    if (this.calls.length === 0) {
+      return [];
+    }
+
+    const chartIdentifier: Identifier = {
+      type: "Identifier",
+      // @ts-ignore
+      ctxt: 0,
+      span: { start: 0, end: 0 } as Span,
+      value: "chart",
+      optional: false,
+    };
+
+    // Start with the first call
+    let chainedExpression: CallExpression = createCallExpression(
+      this.calls[0].arguments,
+      {
+        type: "MemberExpression",
+        // @ts-ignore
+        ctxt: 0,
+        span: { start: 0, end: 0 } as Span,
+        object: chartIdentifier,
+        // @ts-ignore
+        property: this.calls[0].callee.property,
+      }
+    );
+
+    // Chain subsequent calls
+    for (let i = 1; i < this.calls.length; i++) {
+      chainedExpression = createCallExpression(this.calls[i].arguments, {
+        type: "MemberExpression",
+        // @ts-ignore
+        ctxt: 0,
+        span: { start: 0, end: 0 } as Span,
+        object: chainedExpression,
+        // @ts-ignore
+        property: this.calls[i].callee.property,
       });
     }
-    return items;
+
+    return [
+      {
+        type: "ExpressionStatement",
+        span: { start: 0, end: 0, ctxt: 0 },
+        expression: chainedExpression,
+      },
+    ];
   }
 }
 
 // Export the function
-export const generateApiSeparation = (options: Argument): ModuleItem[] => {
+export const generateApi = (options: Argument): ModuleItem[] => {
   if (
     !options?.expression ||
     !TypeGuards.isObjectExpression(options.expression)
@@ -313,6 +424,8 @@ export const generateApiSeparation = (options: Argument): ModuleItem[] => {
 
   return new ASTChainBuilder(options.expression)
     .process(processType)
+    .process(processLabel)
+    .process(processTooltip)
     .process((options) => processDefault(options, optionsKey))
     .getResult();
 };

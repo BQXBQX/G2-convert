@@ -5,7 +5,7 @@ import {
   getOptions,
 } from "../common";
 import initSwc, { parse, type Module, print } from "@swc/wasm-web";
-import { generateApiSeparation } from "./generateApiSeparation";
+import { generateApi } from "./generateApi";
 import { injectInstantModule } from "./injectInstantModule";
 
 /**
@@ -46,7 +46,7 @@ export const spec2api = async (spec: string): Promise<string> => {
 
     injectInstantModule(options, instantiationInfo.moduleItem);
 
-    const apiModuleItems = generateApiSeparation(options);
+    const apiModuleItems = generateApi(options);
 
     const apiCode = await print({
       ...usefulAst,
