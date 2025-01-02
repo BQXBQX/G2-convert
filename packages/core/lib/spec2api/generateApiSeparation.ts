@@ -104,6 +104,7 @@ const optionsKey = [
   "axis",
   "legend",
   "labelTransform",
+  "interaction",
 ];
 
 // Processing functions
