@@ -1,9 +1,12 @@
+/**
+ * if you want to write filter function, please return { keep: boolean, type?: FilterType }
+ */
 import type { Module, ModuleItem } from "@swc/wasm-web";
 
 enum FilterType {
-  import = "import",
-  useless = "useless",
-  render = "render",
+  IMPORT = 0,
+  USELESS = 1,
+  RENDER = 2,
 }
 
 interface ReturnFilterAST {
@@ -39,13 +42,13 @@ class ASTFilterChain {
       const result = filterFn(node);
       if (!result.keep) {
         switch (result.type) {
-          case FilterType.import:
+          case FilterType.IMPORT:
             this.importModuleItems.push(node);
             break;
-          case FilterType.useless:
+          case FilterType.USELESS:
             this.uselessModuleItems.push(node);
             break;
-          case FilterType.render:
+          case FilterType.RENDER:
             this.renderModuleItems.push(node);
             break;
         }
@@ -106,7 +109,7 @@ const removeImports = (
   node: ModuleItem
 ): { keep: boolean; type?: FilterType } => {
   if (node.type === "ImportDeclaration") {
-    return { keep: false, type: FilterType.import };
+    return { keep: false, type: FilterType.IMPORT };
   }
   return { keep: true };
 };
@@ -150,7 +153,7 @@ const removeConsoleLogs = (
         "clear",
       ].includes(property.value)
     ) {
-      return { keep: false, type: FilterType.useless };
+      return { keep: false, type: FilterType.USELESS };
     }
   }
   return { keep: true };
@@ -176,7 +179,7 @@ const removeChartRender = (
       property.value === "render" &&
       object.type === "Identifier"
     ) {
-      return { keep: false, type: FilterType.render };
+      return { keep: false, type: FilterType.RENDER };
     }
   }
 
