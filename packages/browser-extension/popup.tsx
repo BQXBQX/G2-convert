@@ -15,6 +15,7 @@ import { xcodeLight } from "@uiw/codemirror-theme-xcode";
 import { EditorView } from "@codemirror/view";
 import { javascript } from "@codemirror/lang-javascript";
 import styles from "./popup.module.css";
+import { generateWarpSpec } from "@g2-convert/core";
 
 enum TransformState {
   INIT,
@@ -53,8 +54,8 @@ function IndexPopup() {
     TransformState.INIT
   );
   const [segmentValue, setSegmentValue] = useState<string>("api");
-  const [apiValue, setApiValue] = useState(value);
-  const [specValue, setSpecValue] = useState(
+  const [apiValue, setApiValue] = useState<string>(value);
+  const [specValue, setSpecValue] = useState<string>(
     `please write your spec code or click "Convert to API/Spec"`
   );
 
@@ -63,31 +64,26 @@ function IndexPopup() {
   }, [segmentValue, apiValue, specValue]);
 
   useEffect(() => {
-    console.log("monacoValue", monacoValue);
-  }, [specValue]);
-
-  useEffect(() => {
-    // Update badge based on transform state
     switch (transformState) {
       case TransformState.TRANSFORM:
         chrome.runtime.sendMessage({
           type: "UPDATE_BADGE",
           text: "...",
-          color: "#faad14", // antd warning color
+          color: "#faad14",
         });
         break;
       case TransformState.TRANSFORMED:
         chrome.runtime.sendMessage({
           type: "UPDATE_BADGE",
           text: "✓",
-          color: "#52c41a", // antd success color
+          color: "#52c41a",
         });
         break;
       default:
         chrome.runtime.sendMessage({
           type: "UPDATE_BADGE",
           text: "G2",
-          color: "#1677FF", // antd primary color
+          color: "#1677FF",
         });
     }
   }, [transformState]);
@@ -98,12 +94,14 @@ function IndexPopup() {
 
       if (response.type === "success") {
         setTransformState(TransformState.TRANSFORMED);
-        console.log("response", response, segmentValue);
-        switch (segmentValue) {
-          case "api":
-            setSpecValue(JSON.stringify(response.data, null, 2));
+        switch (response.transformType) {
+          case "api2spec":
+            setSpecValue(generateWarpSpec(response.result));
+            setSegmentValue("spec");
             break;
-          case "spec":
+          case "spec2api":
+            setApiValue(response.result);
+            setSegmentValue("api");
             break;
         }
       } else if (response.type === "error") {
@@ -112,7 +110,7 @@ function IndexPopup() {
         chrome.runtime.sendMessage({
           type: "UPDATE_BADGE",
           text: "X",
-          color: "#ff4d4f", // antd error color
+          color: "#ff4d4f",
         });
       }
     });
@@ -177,10 +175,17 @@ function IndexPopup() {
             className={styles.codeMirror}
           />
           <Button
+            disabled={transformState === TransformState.TRANSFORM}
             type="primary"
             onClick={() => {
               setTransformState(TransformState.TRANSFORM);
-              iframeRef.current?.contentWindow?.postMessage(value, "*");
+              iframeRef.current?.contentWindow?.postMessage(
+                {
+                  type: segmentValue === "api" ? "api2spec" : "spec2api",
+                  code: monacoValue,
+                },
+                "*"
+              );
             }}
             className={styles.convertButton}
           >
