@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./style.css";
 // @ts-ignore
 import logo from "./assets/logo.svg";
@@ -8,13 +8,14 @@ import {
   ApiOutlined,
   ControlOutlined,
 } from "@ant-design/icons";
-import { Button, Segmented } from "antd";
+import { Button, Segmented, message } from "antd";
 import { Provider } from "~provider";
 import ReactCodeMirror from "@uiw/react-codemirror";
 import { xcodeLight } from "@uiw/codemirror-theme-xcode";
 import { EditorView } from "@codemirror/view";
 import { javascript } from "@codemirror/lang-javascript";
 import styles from "./popup.module.css";
+import { generateWarpSpec } from "@g2-convert/core";
 
 enum TransformState {
   INIT,
@@ -22,7 +23,10 @@ enum TransformState {
   TRANSFORMED,
 }
 
-const value = `import { Chart } from '@antv/g2';
+const value = `/**
+ * This a API Chart Demo, you can convert it to spec
+ */
+import { Chart } from '@antv/g2';
 
 const chart = new Chart({
   container: 'container',
@@ -46,15 +50,69 @@ chart.render();
 
 function IndexPopup() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [spec, setSpec] = useState();
   const [transformState, setTransformState] = useState<TransformState>(
     TransformState.INIT
   );
-  const [monacoValue, setMonacoValue] = useState(value);
+  const [segmentValue, setSegmentValue] = useState<string>("api");
+  const [apiValue, setApiValue] = useState<string>(value);
+  const [specValue, setSpecValue] = useState<string>(
+    `please write your spec code or click "Convert to API/Spec"`
+  );
+
+  const monacoValue = useMemo(() => {
+    return segmentValue === "api" ? apiValue : specValue;
+  }, [segmentValue, apiValue, specValue]);
+
+  useEffect(() => {
+    switch (transformState) {
+      case TransformState.TRANSFORM:
+        chrome.runtime.sendMessage({
+          type: "UPDATE_BADGE",
+          text: "...",
+          color: "#faad14",
+        });
+        break;
+      case TransformState.TRANSFORMED:
+        chrome.runtime.sendMessage({
+          type: "UPDATE_BADGE",
+          text: "✓",
+          color: "#52c41a",
+        });
+        break;
+      default:
+        chrome.runtime.sendMessage({
+          type: "UPDATE_BADGE",
+          text: "G2",
+          color: "#1677FF",
+        });
+    }
+  }, [transformState]);
 
   useEffect(() => {
     window.addEventListener("message", (event) => {
-      console.log(`EVAL output: ${JSON.stringify(event.data)}`);
+      const response = event.data;
+
+      if (response.type === "success") {
+        setTransformState(TransformState.TRANSFORMED);
+        switch (response.transformType) {
+          case "api2spec":
+            setSpecValue(generateWarpSpec(response.result));
+            setSegmentValue("spec");
+            break;
+          case "spec2api":
+            setApiValue(response.result);
+            setSegmentValue("api");
+            break;
+        }
+      } else if (response.type === "error") {
+        setTransformState(TransformState.INIT);
+        message.error(response.error);
+        chrome.runtime.sendMessage({
+          type: "UPDATE_BADGE",
+          text: "X",
+          color: "#ff4d4f",
+        });
+      }
     });
   }, []);
 
@@ -79,6 +137,8 @@ function IndexPopup() {
         </header>
         <div className={styles.mainContent}>
           <Segmented<string>
+            disabled={transformState === TransformState.TRANSFORM}
+            value={segmentValue}
             options={[
               {
                 label: (
@@ -100,7 +160,7 @@ function IndexPopup() {
               },
             ]}
             onChange={(value) => {
-              console.log(value);
+              setSegmentValue(value);
             }}
             className={styles.segmented}
             block
@@ -115,13 +175,21 @@ function IndexPopup() {
             className={styles.codeMirror}
           />
           <Button
+            disabled={transformState === TransformState.TRANSFORM}
             type="primary"
             onClick={() => {
-              iframeRef.current?.contentWindow?.postMessage(value, "*");
+              setTransformState(TransformState.TRANSFORM);
+              iframeRef.current?.contentWindow?.postMessage(
+                {
+                  type: segmentValue === "api" ? "api2spec" : "spec2api",
+                  code: monacoValue,
+                },
+                "*"
+              );
             }}
             className={styles.convertButton}
           >
-            <strong>Convert to Spec</strong>
+            <strong>Convert to API / Spec</strong>
           </Button>
         </div>
       </div>
