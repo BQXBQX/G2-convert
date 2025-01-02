@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./style.css";
 // @ts-ignore
 import logo from "./assets/logo.svg";
@@ -22,7 +22,10 @@ enum TransformState {
   TRANSFORMED,
 }
 
-const value = `import { Chart } from '@antv/g2';
+const value = `/**
+ * This a API Chart Demo, you can convert it to spec
+ */
+import { Chart } from '@antv/g2';
 
 const chart = new Chart({
   container: 'container',
@@ -46,11 +49,22 @@ chart.render();
 
 function IndexPopup() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [spec, setSpec] = useState();
   const [transformState, setTransformState] = useState<TransformState>(
     TransformState.INIT
   );
-  const [monacoValue, setMonacoValue] = useState(value);
+  const [segmentValue, setSegmentValue] = useState<string>("api");
+  const [apiValue, setApiValue] = useState(value);
+  const [specValue, setSpecValue] = useState(
+    `please write your spec code or click "Convert to API/Spec"`
+  );
+
+  const monacoValue = useMemo(() => {
+    return segmentValue === "api" ? apiValue : specValue;
+  }, [segmentValue, apiValue, specValue]);
+
+  useEffect(() => {
+    console.log("monacoValue", monacoValue);
+  }, [specValue]);
 
   useEffect(() => {
     // Update badge based on transform state
@@ -81,10 +95,17 @@ function IndexPopup() {
   useEffect(() => {
     window.addEventListener("message", (event) => {
       const response = event.data;
-      
+
       if (response.type === "success") {
         setTransformState(TransformState.TRANSFORMED);
-        console.log(`EVAL output: ${JSON.stringify(response.data)}`);
+        console.log("response", response, segmentValue);
+        switch (segmentValue) {
+          case "api":
+            setSpecValue(JSON.stringify(response.data, null, 2));
+            break;
+          case "spec":
+            break;
+        }
       } else if (response.type === "error") {
         setTransformState(TransformState.INIT);
         message.error(response.error);
@@ -118,6 +139,8 @@ function IndexPopup() {
         </header>
         <div className={styles.mainContent}>
           <Segmented<string>
+            disabled={transformState === TransformState.TRANSFORM}
+            value={segmentValue}
             options={[
               {
                 label: (
@@ -139,7 +162,7 @@ function IndexPopup() {
               },
             ]}
             onChange={(value) => {
-              console.log(value);
+              setSegmentValue(value);
             }}
             className={styles.segmented}
             block
@@ -161,7 +184,7 @@ function IndexPopup() {
             }}
             className={styles.convertButton}
           >
-            <strong>Convert to Spec</strong>
+            <strong>Convert to API / Spec</strong>
           </Button>
         </div>
       </div>
