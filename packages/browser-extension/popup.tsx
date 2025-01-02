@@ -8,7 +8,7 @@ import {
   ApiOutlined,
   ControlOutlined,
 } from "@ant-design/icons";
-import { Button, Segmented } from "antd";
+import { Button, Segmented, message } from "antd";
 import { Provider } from "~provider";
 import ReactCodeMirror from "@uiw/react-codemirror";
 import { xcodeLight } from "@uiw/codemirror-theme-xcode";
@@ -53,8 +53,47 @@ function IndexPopup() {
   const [monacoValue, setMonacoValue] = useState(value);
 
   useEffect(() => {
+    // Update badge based on transform state
+    switch (transformState) {
+      case TransformState.TRANSFORM:
+        chrome.runtime.sendMessage({
+          type: "UPDATE_BADGE",
+          text: "...",
+          color: "#faad14", // antd warning color
+        });
+        break;
+      case TransformState.TRANSFORMED:
+        chrome.runtime.sendMessage({
+          type: "UPDATE_BADGE",
+          text: "✓",
+          color: "#52c41a", // antd success color
+        });
+        break;
+      default:
+        chrome.runtime.sendMessage({
+          type: "UPDATE_BADGE",
+          text: "G2",
+          color: "#1677FF", // antd primary color
+        });
+    }
+  }, [transformState]);
+
+  useEffect(() => {
     window.addEventListener("message", (event) => {
-      console.log(`EVAL output: ${JSON.stringify(event.data)}`);
+      const response = event.data;
+      
+      if (response.type === "success") {
+        setTransformState(TransformState.TRANSFORMED);
+        console.log(`EVAL output: ${JSON.stringify(response.data)}`);
+      } else if (response.type === "error") {
+        setTransformState(TransformState.INIT);
+        message.error(response.error);
+        chrome.runtime.sendMessage({
+          type: "UPDATE_BADGE",
+          text: "X",
+          color: "#ff4d4f", // antd error color
+        });
+      }
     });
   }, []);
 
@@ -117,6 +156,7 @@ function IndexPopup() {
           <Button
             type="primary"
             onClick={() => {
+              setTransformState(TransformState.TRANSFORM);
               iframeRef.current?.contentWindow?.postMessage(value, "*");
             }}
             className={styles.convertButton}

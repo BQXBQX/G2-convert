@@ -7,7 +7,13 @@ window.addEventListener("message", async (event) => {
 
   const value = event.data;
 
-  const spec = await api2spec(value);
-
-  source.window.postMessage(spec, event.origin);
+  try {
+    const spec = await api2spec(value);
+    source.window.postMessage({ type: "success", data: spec }, event.origin);
+  } catch (error) {
+    source.window.postMessage({ 
+      type: "error", 
+      error: error instanceof Error ? error.message : "Unknown error occurred" 
+    }, event.origin);
+  }
 });
