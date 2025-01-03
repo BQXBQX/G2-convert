@@ -29,8 +29,8 @@ const facetRect = chart
           ...d
         }) => ({
           ...d,
-          culmen_depth_mm: depth === 'NaN' ? NaN : depth,
-          culmen_length_mm: length === 'NaN' ? NaN : length,
+          culmen_depth_mm: depth === 'NaN' ? Number.NaN : depth,
+          culmen_length_mm: length === 'NaN' ? Number.NaN : length,
         }),
       },
     ],
