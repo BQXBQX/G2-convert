@@ -128,7 +128,8 @@ function IndexPopup() {
         <header className={styles.header}>
           <img src={logo} alt="logo" />
           <div className={styles.headerIcons}>
-            <SettingOutlined className={styles.settingIcon} />
+            {/* TODO: setting page */}
+            {/* <SettingOutlined className={styles.settingIcon} /> */}
             <CloseCircleOutlined
               onClick={() => window.close()}
               className={styles.closeIcon}
