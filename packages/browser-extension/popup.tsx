@@ -15,7 +15,6 @@ import { xcodeLight } from "@uiw/codemirror-theme-xcode";
 import { EditorView } from "@codemirror/view";
 import { javascript } from "@codemirror/lang-javascript";
 import styles from "./popup.module.css";
-import { generateWarpSpec } from "@g2-convert/core";
 
 enum TransformState {
   INIT,
@@ -96,7 +95,7 @@ function IndexPopup() {
         setTransformState(TransformState.TRANSFORMED);
         switch (response.transformType) {
           case "api2spec":
-            setSpecValue(generateWarpSpec(response.result));
+            setSpecValue(response.result);
             setSegmentValue("spec");
             break;
           case "spec2api":
