@@ -47,21 +47,18 @@ window.addEventListener("message", async (event) => {
 export const generateWarpSpec = (options: object): Promise<string> => {
   // Generate the final chart code
   const code = (value: string) => `import { Chart } from '@antv/g2';
-
 const chart = new Chart({
   container: 'container',
 });
-
 chart.options(
   ${value}
 );
-
 chart.render();`;
-  console.log(parseFunction(code(stringifyObject(options, withFunction))));
 
   return format(parseFunction(code(stringifyObject(options))), {
     parser: "babel",
     plugins: [babel, estree],
+    bracketSpacing: true,
   });
 };
 

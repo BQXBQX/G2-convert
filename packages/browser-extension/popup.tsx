@@ -172,6 +172,13 @@ function IndexPopup() {
             theme={xcodeLight}
             extensions={[EditorView.lineWrapping, javascript()]}
             className={styles.codeMirror}
+            onChange={(value) => {
+              if (segmentValue === "api") {
+                setApiValue(value);
+              } else {
+                setSpecValue(value);
+              }
+            }}
           />
           <Button
             disabled={transformState === TransformState.TRANSFORM}
