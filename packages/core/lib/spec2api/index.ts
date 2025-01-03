@@ -61,7 +61,8 @@ export const spec2api = async (spec: string): Promise<string> => {
 
     return apiCode.code;
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    throw new ParsingError("Failed to process API code", error as Error);
   }
   return "";
 };
