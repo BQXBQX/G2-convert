@@ -8,6 +8,8 @@
 		"format": "biome format --fix",
 		"test": "pnpm build:core && pnpm --filter @g2-convert/test test",
 		"build:core": "pnpm --filter @g2-convert/core build",
+		"build:browser": "pnpm --filter @g2-convert/browser-extension build",
+		"package:browser": "pnpm --filter @g2-convert/browser-extension package",
 		"prepare": "husky"
 	},
 	"keywords": [],
