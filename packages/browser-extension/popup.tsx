@@ -95,7 +95,7 @@ function IndexPopup() {
 				setTransformState(TransformState.TRANSFORMED);
 				switch (response.transformType) {
 					case "api2spec":
-						setSpecValue(generateWarpSpec(response.result));
+						setSpecValue(response.result);
 						setSegmentValue("spec");
 						break;
 					case "spec2api":
