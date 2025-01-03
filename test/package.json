@@ -1,28 +1,28 @@
 {
-  "name": "@g2-convert/test",
-  "version": "1.0.0",
-  "description": "",
-  "engines": {
-    "node": ">=20.0.0"
-  },
-  "engineStrict": true,
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "test": "vitest run -c vitest.config.js",
-    "test:watch": "vitest watch -c vitest.config.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@g2-convert/core": "workspace:*",
-    "lodash": "^4.17.21",
-    "node-fetch": "^3.3.2"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.49.1",
-    "jsdom": "^25.0.1",
-    "vitest": "^2.1.8"
-  }
+	"name": "@g2-convert/test",
+	"version": "1.0.0",
+	"description": "",
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"engineStrict": true,
+	"main": "index.js",
+	"type": "module",
+	"scripts": {
+		"test": "vitest run -c vitest.config.js",
+		"test:watch": "vitest watch -c vitest.config.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"@g2-convert/core": "workspace:*",
+		"lodash": "^4.17.21",
+		"node-fetch": "^3.3.2"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.49.1",
+		"jsdom": "^25.0.1",
+		"vitest": "^2.1.8"
+	}
 }

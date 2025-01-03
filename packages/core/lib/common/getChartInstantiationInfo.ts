@@ -8,29 +8,29 @@ import type { Module, ModuleItem } from "@swc/wasm-web";
 // TODO: now only support single instantiation
 // TODO: now only support chart instantiation, need to support alias of chart
 export const getChartInstantiationInfo = (
-  AST: Module
+	AST: Module,
 ): { instanceName: string | null; moduleItem: ModuleItem | null } => {
-  for (const node of AST.body) {
-    if (node.type === "VariableDeclaration") {
-      const declaration = node.declarations[0];
+	for (const node of AST.body) {
+		if (node.type === "VariableDeclaration") {
+			const declaration = node.declarations[0];
 
-      if (
-        declaration.init?.type === "NewExpression" &&
-        declaration.init.callee.type === "Identifier" &&
-        declaration.init.callee.value === "Chart"
-      ) {
-        if (declaration.id.type === "Identifier") {
-          return {
-            instanceName: declaration.id.value,
-            moduleItem: node,
-          };
-        }
-      }
-    }
-  }
+			if (
+				declaration.init?.type === "NewExpression" &&
+				declaration.init.callee.type === "Identifier" &&
+				declaration.init.callee.value === "Chart"
+			) {
+				if (declaration.id.type === "Identifier") {
+					return {
+						instanceName: declaration.id.value,
+						moduleItem: node,
+					};
+				}
+			}
+		}
+	}
 
-  return {
-    instanceName: null,
-    moduleItem: null,
-  };
+	return {
+		instanceName: null,
+		moduleItem: null,
+	};
 };

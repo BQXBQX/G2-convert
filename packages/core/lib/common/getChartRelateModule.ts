@@ -7,123 +7,123 @@ import type { Module, ModuleItem } from "@swc/wasm-web";
 import { getChartInstantiationInfo } from "./getChartInstantiationInfo";
 
 interface isFunctionReturn {
-  keep: boolean;
-  variableName: Set<string>;
+	keep: boolean;
+	variableName: Set<string>;
 }
 
 export const getChartRelateModule = (AST: Module): ModuleItem[] => {
-  const instantiationInfo = getChartInstantiationInfo(AST);
-  if (!instantiationInfo.moduleItem || !instantiationInfo.instanceName) {
-    throw new Error("Can't find chart instantiation");
-  }
+	const instantiationInfo = getChartInstantiationInfo(AST);
+	if (!instantiationInfo.moduleItem || !instantiationInfo.instanceName) {
+		throw new Error("Can't find chart instantiation");
+	}
 
-  const chartRelateModule = new ChartRelateModule(
-    instantiationInfo.moduleItem,
-    instantiationInfo.instanceName,
-    AST.body
-  )
-    .search(isVariableHasChart)
-    .search(isExpressionStartsWith)
-    .getResult();
+	const chartRelateModule = new ChartRelateModule(
+		instantiationInfo.moduleItem,
+		instantiationInfo.instanceName,
+		AST.body,
+	)
+		.search(isVariableHasChart)
+		.search(isExpressionStartsWith)
+		.getResult();
 
-  return chartRelateModule.props.otherModuleItems;
+	return chartRelateModule.props.otherModuleItems;
 };
 
 class ChartRelateModule {
-  /**
-   * instantiationModuleItem
-   * example: const chart = new Chart();
-   */
-  private instantiationModuleItem: ModuleItem;
+	/**
+	 * instantiationModuleItem
+	 * example: const chart = new Chart();
+	 */
+	private instantiationModuleItem: ModuleItem;
 
-  /**
-   * externalModuleReferences
-   * example:
-   * const data = [...]
-   * chart.data(data)
-   */
-  private externalModuleReferences: ModuleItem[] = [];
+	/**
+	 * externalModuleReferences
+	 * example:
+	 * const data = [...]
+	 * chart.data(data)
+	 */
+	private externalModuleReferences: ModuleItem[] = [];
 
-  // otherModuleItems
-  private otherModuleItems: ModuleItem[] = [];
+	// otherModuleItems
+	private otherModuleItems: ModuleItem[] = [];
 
-  // allUsedIdentifiers
-  private allUsedIdentifiers: Set<string>;
+	// allUsedIdentifiers
+	private allUsedIdentifiers: Set<string>;
 
-  // allModuleItems
-  private allModuleItems: ModuleItem[];
+	// allModuleItems
+	private allModuleItems: ModuleItem[];
 
-  constructor(
-    instantiationModuleItem: ModuleItem,
-    instanceName: string,
-    allModuleItems: ModuleItem[]
-  ) {
-    this.instantiationModuleItem = instantiationModuleItem;
-    this.allUsedIdentifiers = new Set([instanceName]);
-    this.allModuleItems = allModuleItems;
-  }
+	constructor(
+		instantiationModuleItem: ModuleItem,
+		instanceName: string,
+		allModuleItems: ModuleItem[],
+	) {
+		this.instantiationModuleItem = instantiationModuleItem;
+		this.allUsedIdentifiers = new Set([instanceName]);
+		this.allModuleItems = allModuleItems;
+	}
 
-  /**
-   * search useful module items
-   * @param node
-   * @returns
-   */
-  search(
-    searchFn: (node: ModuleItem, identifierName: string) => isFunctionReturn
-  ) {
-    const searchResult: ModuleItem[] = [];
+	/**
+	 * search useful module items
+	 * @param node
+	 * @returns
+	 */
+	search(
+		searchFn: (node: ModuleItem, identifierName: string) => isFunctionReturn,
+	) {
+		const searchResult: ModuleItem[] = [];
 
-    let identifierCount = this.allUsedIdentifiers.size;
-    const identifiers = Array.from(this.allUsedIdentifiers);
+		let identifierCount = this.allUsedIdentifiers.size;
+		const identifiers = Array.from(this.allUsedIdentifiers);
 
-    for (let i = 0; i < identifierCount; i++) {
-      const identifier = identifiers[i];
+		for (let i = 0; i < identifierCount; i++) {
+			const identifier = identifiers[i];
 
-      for (const node of this.allModuleItems) {
-        const { keep, variableName } = searchFn(node, identifier);
+			for (const node of this.allModuleItems) {
+				const { keep, variableName } = searchFn(node, identifier);
 
-        if (keep) {
-          searchResult.push(node);
-          this.otherModuleItems.push(node);
+				if (keep) {
+					searchResult.push(node);
+					this.otherModuleItems.push(node);
 
-          for (const name of variableName) {
-            if (!this.allUsedIdentifiers.has(name)) {
-              this.allUsedIdentifiers.add(name);
-              identifiers.push(name);
-              identifierCount++; // Extend the loop to cover the new element
+					for (const name of variableName) {
+						if (!this.allUsedIdentifiers.has(name)) {
+							this.allUsedIdentifiers.add(name);
+							identifiers.push(name);
+							identifierCount++; // Extend the loop to cover the new element
 
-              const variableModule = getVariableModuleByIdentifierName(
-                this.allModuleItems,
-                name
-              );
+							const variableModule = getVariableModuleByIdentifierName(
+								this.allModuleItems,
+								name,
+							);
 
-              if (variableModule) {
-                searchResult.push(variableModule);
-                this.otherModuleItems.push(variableModule);
-              }
-            }
-          }
-        }
-      }
-    }
+							if (variableModule) {
+								searchResult.push(variableModule);
+								this.otherModuleItems.push(variableModule);
+							}
+						}
+					}
+				}
+			}
+		}
 
-    return this;
-  }
+		return this;
+	}
 
-  /**
-   *  get instantiationModuleItem
-   * @returns
-   */
-  getResult() {
-    return {
-      allModuleItems: this.allUsedIdentifiers,
-      props: {
-        instantiationModuleItem: this.instantiationModuleItem,
-        externalModuleReferences: this.externalModuleReferences,
-        otherModuleItems: this.otherModuleItems,
-      },
-    };
-  }
+	/**
+	 *  get instantiationModuleItem
+	 * @returns
+	 */
+	getResult() {
+		return {
+			allModuleItems: this.allUsedIdentifiers,
+			props: {
+				instantiationModuleItem: this.instantiationModuleItem,
+				externalModuleReferences: this.externalModuleReferences,
+				otherModuleItems: this.otherModuleItems,
+			},
+		};
+	}
 }
 
 /**
@@ -136,36 +136,36 @@ class ChartRelateModule {
  * @returns True if the variable declaration has the specified identifier, false otherwise.
  */
 const isVariableHasChart = (
-  node: ModuleItem,
-  identifierName: string
+	node: ModuleItem,
+	identifierName: string,
 ): isFunctionReturn => {
-  if (node.type === "VariableDeclaration") {
-    const declaration = node.declarations[0];
-    if (declaration.init?.type === "CallExpression") {
-      // Handle method chaining like chart.spaceLayer().data()
-      let currentNode = declaration.init;
-      while (currentNode && currentNode.type === "CallExpression") {
-        if (currentNode.callee.type === "MemberExpression") {
-          const object = currentNode.callee.object;
-          // Check if it's chart.spaceLayer
-          if (object.type === "Identifier" && object.value === identifierName) {
-            return {
-              keep: true,
-              // @ts-ignore
-              variableName: new Set([declaration.id.value]),
-            };
-          }
-        }
-        // Move up the chain
-        // @ts-ignore
-        currentNode = currentNode.callee.object;
-      }
-    }
-  }
-  return {
-    keep: false,
-    variableName: new Set(),
-  };
+	if (node.type === "VariableDeclaration") {
+		const declaration = node.declarations[0];
+		if (declaration.init?.type === "CallExpression") {
+			// Handle method chaining like chart.spaceLayer().data()
+			let currentNode = declaration.init;
+			while (currentNode && currentNode.type === "CallExpression") {
+				if (currentNode.callee.type === "MemberExpression") {
+					const object = currentNode.callee.object;
+					// Check if it's chart.spaceLayer
+					if (object.type === "Identifier" && object.value === identifierName) {
+						return {
+							keep: true,
+							// @ts-ignore
+							variableName: new Set([declaration.id.value]),
+						};
+					}
+				}
+				// Move up the chain
+				// @ts-ignore
+				currentNode = currentNode.callee.object;
+			}
+		}
+	}
+	return {
+		keep: false,
+		variableName: new Set(),
+	};
 };
 
 /**
@@ -183,53 +183,53 @@ const isVariableHasChart = (
  * @returns Object containing whether to keep the node and found identifiers.
  */
 const isExpressionStartsWith = (
-  node: ModuleItem,
-  identifierName: string
+	node: ModuleItem,
+	identifierName: string,
 ): isFunctionReturn => {
-  if (node.type !== "ExpressionStatement") {
-    return {
-      keep: false,
-      variableName: new Set(),
-    };
-  }
+	if (node.type !== "ExpressionStatement") {
+		return {
+			keep: false,
+			variableName: new Set(),
+		};
+	}
 
-  const expression = node.expression;
-  if (expression.type !== "CallExpression") {
-    return {
-      keep: false,
-      variableName: new Set(),
-    };
-  }
+	const expression = node.expression;
+	if (expression.type !== "CallExpression") {
+		return {
+			keep: false,
+			variableName: new Set(),
+		};
+	}
 
-  const variableName = new Set<string>();
-  let foundStartIdentifier = false;
+	const variableName = new Set<string>();
+	let foundStartIdentifier = false;
 
-  // Handle method chaining
-  let currentNode = expression;
-  while (currentNode && currentNode.type === "CallExpression") {
-    // Check for identifiers in arguments
-    for (const arg of currentNode.arguments) {
-      const expr = arg.expression;
-      if (expr?.type === "Identifier") {
-        variableName.add(expr.value);
-      }
-    }
+	// Handle method chaining
+	let currentNode = expression;
+	while (currentNode && currentNode.type === "CallExpression") {
+		// Check for identifiers in arguments
+		for (const arg of currentNode.arguments) {
+			const expr = arg.expression;
+			if (expr?.type === "Identifier") {
+				variableName.add(expr.value);
+			}
+		}
 
-    if (currentNode.callee.type === "MemberExpression") {
-      const object = currentNode.callee.object;
-      if (object.type === "Identifier" && object.value === identifierName) {
-        foundStartIdentifier = true;
-      }
-    }
-    // Move up the chain
-    // @ts-ignore
-    currentNode = currentNode.callee.object;
-  }
+		if (currentNode.callee.type === "MemberExpression") {
+			const object = currentNode.callee.object;
+			if (object.type === "Identifier" && object.value === identifierName) {
+				foundStartIdentifier = true;
+			}
+		}
+		// Move up the chain
+		// @ts-ignore
+		currentNode = currentNode.callee.object;
+	}
 
-  return {
-    keep: foundStartIdentifier,
-    variableName,
-  };
+	return {
+		keep: foundStartIdentifier,
+		variableName,
+	};
 };
 
 /**
@@ -239,19 +239,19 @@ const isExpressionStartsWith = (
  * @returns
  */
 const getVariableModuleByIdentifierName = (
-  nodes: ModuleItem[],
-  identifierName: string
+	nodes: ModuleItem[],
+	identifierName: string,
 ): ModuleItem | null => {
-  for (const node of nodes) {
-    if (node.type === "VariableDeclaration") {
-      const declaration = node.declarations[0];
-      if (
-        declaration.id.type === "Identifier" &&
-        declaration.id.value === identifierName
-      ) {
-        return node;
-      }
-    }
-  }
-  return null;
+	for (const node of nodes) {
+		if (node.type === "VariableDeclaration") {
+			const declaration = node.declarations[0];
+			if (
+				declaration.id.type === "Identifier" &&
+				declaration.id.value === identifierName
+			) {
+				return node;
+			}
+		}
+	}
+	return null;
 };

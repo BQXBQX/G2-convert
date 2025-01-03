@@ -36,33 +36,33 @@ chart.render();
 `;
 
 test("Scatterplot Test", async () => {
-  const code = await spec2api(value);
+	const code = await spec2api(value);
 
-  const options = await api2spec(code);
+	const options = await api2spec(code);
 
-  const expected = {
-    type: "point",
-    autoFit: true,
-    data: {
-      type: "fetch",
-      value:
-        " https://gw.alipayobjects.com/os/bmw-prod/474e51c8-b47b-4bb6-b3ed-87813a960df2.csv",
-    },
-    encode: { x: "mpg", y: "hp" },
-    scale: { x: { nice: true, domainMax: 38 }, y: { nice: true } },
-    labels: [
-      {
-        text: "name",
-        stroke: "#fff",
-        textAlign: "start",
-        textBaseline: "middle",
-        dx: 10,
-        position: "left",
-        fontSize: 10,
-        lineWidth: 2,
-      },
-    ],
-  };
+	const expected = {
+		type: "point",
+		autoFit: true,
+		data: {
+			type: "fetch",
+			value:
+				" https://gw.alipayobjects.com/os/bmw-prod/474e51c8-b47b-4bb6-b3ed-87813a960df2.csv",
+		},
+		encode: { x: "mpg", y: "hp" },
+		scale: { x: { nice: true, domainMax: 38 }, y: { nice: true } },
+		labels: [
+			{
+				text: "name",
+				stroke: "#fff",
+				textAlign: "start",
+				textBaseline: "middle",
+				dx: 10,
+				position: "left",
+				fontSize: 10,
+				lineWidth: 2,
+			},
+		],
+	};
 
-  deepEqual(options, expected);
+	deepEqual(options, expected);
 });

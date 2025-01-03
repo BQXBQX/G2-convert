@@ -1,19 +1,27 @@
 {
-  "name": "g2-convert",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "lint": "biome lint",
-    "format": "biome format --fix",
-    "test": "pnpm build:core && pnpm --filter @g2-convert/test test",
-    "build:core": "pnpm --filter @g2-convert/core build"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
-  "devDependencies": {
-    "@biomejs/biome": "1.9.4",
-    "typescript": "^5.7.2"
-  }
+	"name": "g2-convert",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"lint": "biome lint",
+		"format": "biome format --fix",
+		"test": "pnpm build:core && pnpm --filter @g2-convert/test test",
+		"build:core": "pnpm --filter @g2-convert/core build",
+		"prepare": "husky"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "MIT",
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"lint-staged": "^15.3.0",
+		"typescript": "^5.7.2"
+	},
+	"dependencies": {
+		"husky": "^9.1.7"
+	},
+	"lint-staged": {
+		"*.{js,jsx,ts,tsx,json,md}": ["pnpm format", "pnpm lint", "git add"]
+	}
 }

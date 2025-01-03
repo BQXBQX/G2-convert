@@ -1,38 +1,36 @@
 {
-  "name": "@g2-convert/browser-extension",
-  "displayName": "Browser extension",
-  "version": "0.0.1",
-  "description": "convert api & spec for g2",
-  "author": "bqxbqx <boqingxin14@gmail.com>",
-  "scripts": {
-    "dev": "plasmo dev",
-    "build": "plasmo build",
-    "package": "plasmo package"
-  },
-  "dependencies": {
-    "@ant-design/icons": "^5.5.2",
-    "@codemirror/lang-javascript": "^6.2.2",
-    "@codemirror/view": "^6.36.1",
-    "@g2-convert/core": "workspace:*",
-    "@uiw/codemirror-theme-xcode": "^4.23.7",
-    "@uiw/react-codemirror": "^4.23.7",
-    "antd": "^5.22.5",
-    "plasmo": "0.89.4",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "stringify-object": "^5.0.0"
-  },
-  "devDependencies": {
-    "@types/chrome": "0.0.258",
-    "@types/node": "20.11.5",
-    "@types/react": "18.2.48",
-    "@types/react-dom": "18.2.18",
-    "prettier": "^3.4.2",
-    "typescript": "^5.7.2"
-  },
-  "manifest": {
-    "host_permissions": [
-      "https://*/*"
-    ]
-  }
+	"name": "@g2-convert/browser-extension",
+	"displayName": "Browser extension",
+	"version": "0.0.1",
+	"description": "convert api & spec for g2",
+	"author": "bqxbqx <boqingxin14@gmail.com>",
+	"scripts": {
+		"dev": "plasmo dev",
+		"build": "plasmo build",
+		"package": "plasmo package"
+	},
+	"dependencies": {
+		"@ant-design/icons": "^5.5.2",
+		"@codemirror/lang-javascript": "^6.2.2",
+		"@codemirror/view": "^6.36.1",
+		"@g2-convert/core": "workspace:*",
+		"@uiw/codemirror-theme-xcode": "^4.23.7",
+		"@uiw/react-codemirror": "^4.23.7",
+		"antd": "^5.22.5",
+		"plasmo": "0.89.4",
+		"react": "18.2.0",
+		"react-dom": "18.2.0",
+		"stringify-object": "^5.0.0"
+	},
+	"devDependencies": {
+		"@types/chrome": "0.0.258",
+		"@types/node": "20.11.5",
+		"@types/react": "18.2.48",
+		"@types/react-dom": "18.2.18",
+		"prettier": "^3.4.2",
+		"typescript": "^5.7.2"
+	},
+	"manifest": {
+		"host_permissions": ["https://*/*"]
+	}
 }
