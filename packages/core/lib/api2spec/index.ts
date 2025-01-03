@@ -6,7 +6,7 @@ import { removeUndefinedProperties } from "../common";
 import eventEmitter from "../common/eventEmitter";
 
 interface ChartSpec {
-  [key: string]: unknown;
+	[key: string]: unknown;
 }
 
 /**
@@ -16,64 +16,64 @@ interface ChartSpec {
  * @returns
  */
 export const api2spec = async (api: string): Promise<ChartSpec> => {
-  if (!api || typeof api !== "string") {
-    throw new ParsingError("Invalid API input: must be a non-empty string");
-  }
+	if (!api || typeof api !== "string") {
+		throw new ParsingError("Invalid API input: must be a non-empty string");
+	}
 
-  try {
-    await initSwc();
+	try {
+		await initSwc();
 
-    // Parse with TypeScript for better language support, typescript target is es2022
-    const AST: Module = await parse(api, {
-      syntax: "typescript",
-      target: "es2022",
-      tsx: false,
-    });
+		// Parse with TypeScript for better language support, typescript target is es2022
+		const AST: Module = await parse(api, {
+			syntax: "typescript",
+			target: "es2022",
+			tsx: false,
+		});
 
-    const { AST: usefulAst, otherModuleItems } = filterAST(AST);
+		const { AST: usefulAst, otherModuleItems } = filterAST(AST);
 
-    if (AST.body.length === 0) {
-      throw new ParsingError(
-        "Can't find any useful module, please check your api"
-      );
-    }
+		if (AST.body.length === 0) {
+			throw new ParsingError(
+				"Can't find any useful module, please check your api",
+			);
+		}
 
-    const { code } = await print(usefulAst);
-    const instantiationInfo = getChartInstantiationInfo(AST);
+		const { code } = await print(usefulAst);
+		const instantiationInfo = getChartInstantiationInfo(AST);
 
-    if (!instantiationInfo.instanceName) {
-      throw new ParsingError("No chart instance found in the provided code");
-    }
+		if (!instantiationInfo.instanceName) {
+			throw new ParsingError("No chart instance found in the provided code");
+		}
 
-    return new Promise((resolve, reject) => {
-      const timeoutId = setTimeout(() => {
-        cleanup();
-        reject(new ParsingError("Timeout: Spec generation took too long"));
-      }, 5000);
+		return new Promise((resolve, reject) => {
+			const timeoutId = setTimeout(() => {
+				cleanup();
+				reject(new ParsingError("Timeout: Spec generation took too long"));
+			}, 5000);
 
-      const cleanup = () => {
-        clearTimeout(timeoutId);
-        eventEmitter.removeAllListeners("spec");
-      };
+			const cleanup = () => {
+				clearTimeout(timeoutId);
+				eventEmitter.removeAllListeners("spec");
+			};
 
-      eventEmitter.once("spec", (value) => {
-        cleanup();
-        const cleanSpec = removeUndefinedProperties(value as ChartSpec);
-        resolve(cleanSpec);
-      });
+			eventEmitter.once("spec", (value) => {
+				cleanup();
+				const cleanSpec = removeUndefinedProperties(value as ChartSpec);
+				resolve(cleanSpec);
+			});
 
-      try {
-        evalChartCode(`${code}\n ${instantiationInfo.instanceName}.toSpec();`);
-      } catch (error) {
-        cleanup();
-        reject(
-          new ParsingError("Failed to evaluate chart code", error as Error)
-        );
-      }
-    });
-  } catch (error) {
-    throw new ParsingError("Failed to process API code", error as Error);
-  }
+			try {
+				evalChartCode(`${code}\n ${instantiationInfo.instanceName}.toSpec();`);
+			} catch (error) {
+				cleanup();
+				reject(
+					new ParsingError("Failed to evaluate chart code", error as Error),
+				);
+			}
+		});
+	} catch (error) {
+		throw new ParsingError("Failed to process API code", error as Error);
+	}
 };
 
 /**
@@ -81,21 +81,21 @@ export const api2spec = async (api: string): Promise<ChartSpec> => {
  * use try & catch to handle errors
  */
 export const evalChartCode = (code: string): object => {
-  const safeContext = Object.create(null);
-  Object.assign(safeContext, { Chart });
+	const safeContext = Object.create(null);
+	Object.assign(safeContext, { Chart });
 
-  const wrappedCode = new Function(
-    "context",
-    `with (context) { 
+	const wrappedCode = new Function(
+		"context",
+		`with (context) { 
        try {
          ${code}
        } catch (error) {
          throw new Error('Chart code evaluation failed: ' + error.message);
        }
-     }`
-  );
+     }`,
+	);
 
-  return wrappedCode(safeContext);
+	return wrappedCode(safeContext);
 };
 
 /**
@@ -104,7 +104,7 @@ export const evalChartCode = (code: string): object => {
  * @returns
  */
 export const generateWarpSpec = (options: ChartSpec): string => {
-  const code = `import { Chart } from '@antv/g2';
+	const code = `import { Chart } from '@antv/g2';
 
 const chart = new Chart({
   container: 'container',
@@ -114,5 +114,5 @@ chart.options(${options.toString()});
 
 chart.render();`;
 
-  return code;
+	return code;
 };

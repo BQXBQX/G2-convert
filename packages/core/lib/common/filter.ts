@@ -4,74 +4,74 @@
 import type { Module, ModuleItem } from "@swc/wasm-web";
 
 enum FilterType {
-  IMPORT = 0,
-  USELESS = 1,
-  RENDER = 2,
+	IMPORT = 0,
+	USELESS = 1,
+	RENDER = 2,
 }
 
 interface ReturnFilterAST {
-  moduleItems: ModuleItem[];
-  otherModuleItems: {
-    [key: string]: ModuleItem[];
-  };
+	moduleItems: ModuleItem[];
+	otherModuleItems: {
+		[key: string]: ModuleItem[];
+	};
 }
 
 type FilterFunction = (node: ModuleItem) => {
-  keep: boolean;
-  type?: FilterType;
+	keep: boolean;
+	type?: FilterType;
 };
 
 /**
  * AST Filter Chain class
  */
 class ASTFilterChain {
-  private moduleItems: ModuleItem[];
-  private importModuleItems: ModuleItem[] = [];
-  private uselessModuleItems: ModuleItem[] = [];
-  private renderModuleItems: ModuleItem[] = [];
+	private moduleItems: ModuleItem[];
+	private importModuleItems: ModuleItem[] = [];
+	private uselessModuleItems: ModuleItem[] = [];
+	private renderModuleItems: ModuleItem[] = [];
 
-  constructor(moduleItems: ModuleItem[]) {
-    this.moduleItems = moduleItems;
-  }
+	constructor(moduleItems: ModuleItem[]) {
+		this.moduleItems = moduleItems;
+	}
 
-  /**
-   * Apply a filter function to the module items
-   */
-  filter(filterFn: FilterFunction): this {
-    const newModuleItems = this.moduleItems.filter((node) => {
-      const result = filterFn(node);
-      if (!result.keep) {
-        switch (result.type) {
-          case FilterType.IMPORT:
-            this.importModuleItems.push(node);
-            break;
-          case FilterType.USELESS:
-            this.uselessModuleItems.push(node);
-            break;
-          case FilterType.RENDER:
-            this.renderModuleItems.push(node);
-            break;
-        }
-      }
-      return result.keep;
-    });
-    this.moduleItems = newModuleItems;
-    return this;
-  }
+	/**
+	 * Apply a filter function to the module items
+	 */
+	filter(filterFn: FilterFunction): this {
+		const newModuleItems = this.moduleItems.filter((node) => {
+			const result = filterFn(node);
+			if (!result.keep) {
+				switch (result.type) {
+					case FilterType.IMPORT:
+						this.importModuleItems.push(node);
+						break;
+					case FilterType.USELESS:
+						this.uselessModuleItems.push(node);
+						break;
+					case FilterType.RENDER:
+						this.renderModuleItems.push(node);
+						break;
+				}
+			}
+			return result.keep;
+		});
+		this.moduleItems = newModuleItems;
+		return this;
+	}
 
-  /**
-   * Get the filtered results
-   */
-  getResult(): ReturnFilterAST {
-    return {
-      moduleItems: this.moduleItems,
-      otherModuleItems: {
-        import: this.importModuleItems,
-        useless: this.uselessModuleItems,
-        render: this.renderModuleItems,
-      },
-    };
-  }
+	/**
+	 * Get the filtered results
+	 */
+	getResult(): ReturnFilterAST {
+		return {
+			moduleItems: this.moduleItems,
+			otherModuleItems: {
+				import: this.importModuleItems,
+				useless: this.uselessModuleItems,
+				render: this.renderModuleItems,
+			},
+		};
+	}
 }
 
 /**
@@ -80,38 +80,38 @@ class ASTFilterChain {
  * @returns
  */
 export function filterAST(AST: Module): {
-  AST: Module;
-  otherModuleItems: {
-    [key: string]: ModuleItem[];
-  };
+	AST: Module;
+	otherModuleItems: {
+		[key: string]: ModuleItem[];
+	};
 } {
-  const chain = new ASTFilterChain(AST.body);
+	const chain = new ASTFilterChain(AST.body);
 
-  const result = chain
-    .filter(removeImports)
-    .filter(removeConsoleLogs)
-    .filter(removeChartRender)
-    .getResult();
+	const result = chain
+		.filter(removeImports)
+		.filter(removeConsoleLogs)
+		.filter(removeChartRender)
+		.getResult();
 
-  return {
-    AST: {
-      ...AST,
-      body: result.moduleItems,
-    },
-    otherModuleItems: result.otherModuleItems,
-  };
+	return {
+		AST: {
+			...AST,
+			body: result.moduleItems,
+		},
+		otherModuleItems: result.otherModuleItems,
+	};
 }
 
 /**
  * Filter function to remove import declarations
  */
 const removeImports = (
-  node: ModuleItem
+	node: ModuleItem,
 ): { keep: boolean; type?: FilterType } => {
-  if (node.type === "ImportDeclaration") {
-    return { keep: false, type: FilterType.IMPORT };
-  }
-  return { keep: true };
+	if (node.type === "ImportDeclaration") {
+		return { keep: false, type: FilterType.IMPORT };
+	}
+	return { keep: true };
 };
 
 /**
@@ -120,43 +120,43 @@ const removeImports = (
  * @returns
  */
 const removeConsoleLogs = (
-  node: ModuleItem
+	node: ModuleItem,
 ): { keep: boolean; type?: FilterType } => {
-  if (
-    node.type === "ExpressionStatement" &&
-    node.expression.type === "CallExpression" &&
-    node.expression.callee.type === "MemberExpression"
-  ) {
-    const { object, property } = node.expression.callee;
+	if (
+		node.type === "ExpressionStatement" &&
+		node.expression.type === "CallExpression" &&
+		node.expression.callee.type === "MemberExpression"
+	) {
+		const { object, property } = node.expression.callee;
 
-    if (
-      object.type === "Identifier" &&
-      object.value === "console" &&
-      property.type === "Identifier" &&
-      [
-        "log",
-        "warn",
-        "error",
-        "info",
-        "debug",
-        "trace",
-        "dir",
-        "table",
-        "count",
-        "countReset",
-        "group",
-        "groupEnd",
-        "time",
-        "timeEnd",
-        "timeLog",
-        "assert",
-        "clear",
-      ].includes(property.value)
-    ) {
-      return { keep: false, type: FilterType.USELESS };
-    }
-  }
-  return { keep: true };
+		if (
+			object.type === "Identifier" &&
+			object.value === "console" &&
+			property.type === "Identifier" &&
+			[
+				"log",
+				"warn",
+				"error",
+				"info",
+				"debug",
+				"trace",
+				"dir",
+				"table",
+				"count",
+				"countReset",
+				"group",
+				"groupEnd",
+				"time",
+				"timeEnd",
+				"timeLog",
+				"assert",
+				"clear",
+			].includes(property.value)
+		) {
+			return { keep: false, type: FilterType.USELESS };
+		}
+	}
+	return { keep: true };
 };
 
 /**
@@ -165,23 +165,23 @@ const removeConsoleLogs = (
  * @returns
  */
 const removeChartRender = (
-  node: ModuleItem
+	node: ModuleItem,
 ): { keep: boolean; type?: FilterType } => {
-  // chart.render() || myChart.render()
-  if (
-    node.type === "ExpressionStatement" &&
-    node.expression.type === "CallExpression" &&
-    node.expression.callee.type === "MemberExpression"
-  ) {
-    const { object, property } = node.expression.callee;
-    if (
-      property.type === "Identifier" &&
-      property.value === "render" &&
-      object.type === "Identifier"
-    ) {
-      return { keep: false, type: FilterType.RENDER };
-    }
-  }
+	// chart.render() || myChart.render()
+	if (
+		node.type === "ExpressionStatement" &&
+		node.expression.type === "CallExpression" &&
+		node.expression.callee.type === "MemberExpression"
+	) {
+		const { object, property } = node.expression.callee;
+		if (
+			property.type === "Identifier" &&
+			property.value === "render" &&
+			object.type === "Identifier"
+		) {
+			return { keep: false, type: FilterType.RENDER };
+		}
+	}
 
-  return { keep: true };
+	return { keep: true };
 };
