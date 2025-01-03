@@ -97,22 +97,3 @@ export const evalChartCode = (code: string): object => {
 
 	return wrappedCode(safeContext);
 };
-
-/**
- * Generate spec code
- * @param options
- * @returns
- */
-export const generateWarpSpec = (options: ChartSpec): string => {
-	const code = `import { Chart } from '@antv/g2';
-
-const chart = new Chart({
-  container: 'container',
-});
-
-chart.options(${options.toString()});
-
-chart.render();`;
-
-	return code;
-};

@@ -15,7 +15,6 @@ import { xcodeLight } from "@uiw/codemirror-theme-xcode";
 import { EditorView } from "@codemirror/view";
 import { javascript } from "@codemirror/lang-javascript";
 import styles from "./popup.module.css";
-import { generateWarpSpec } from "@g2-convert/core";
 
 enum TransformState {
 	INIT = 0,

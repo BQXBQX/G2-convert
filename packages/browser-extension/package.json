@@ -19,13 +19,15 @@
 		"antd": "^5.22.5",
 		"plasmo": "0.89.4",
 		"react": "18.2.0",
-		"react-dom": "18.2.0"
+		"react-dom": "18.2.0",
+		"stringify-object": "^5.0.0"
 	},
 	"devDependencies": {
 		"@types/chrome": "0.0.258",
 		"@types/node": "20.11.5",
 		"@types/react": "18.2.48",
 		"@types/react-dom": "18.2.18",
+		"prettier": "^3.4.2",
 		"typescript": "^5.7.2"
 	},
 	"manifest": {
